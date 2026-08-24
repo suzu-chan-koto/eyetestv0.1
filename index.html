@@ -2,160 +2,343 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover">
+
 <title>Eye Controller</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
-  font-family: sans-serif;
-  text-align: center;
-  background: #f4f4f4;
-  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f3f3f3;
+  color: #222;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 button {
-  font-size: 17px;
-  padding: 13px 18px;
-  margin: 6px;
+  font: inherit;
+  touch-action: manipulation;
+}
+
+#app {
+  height: 100dvh;
+  min-height: 100%;
+  padding:
+    max(6px, env(safe-area-inset-top))
+    8px
+    max(6px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 6px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#connectButton {
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 11px;
+  background: #222;
+  color: white;
+  font-weight: 700;
+  min-height: 38px;
+}
+
+#status {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.main {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(128px, .85fr);
+  gap: 7px;
+}
+
+.pad-wrap {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #pad {
-  width: 300px;
-  height: 300px;
-  max-width: 85vw;
-  max-height: 85vw;
+  width: min(100%, 290px);
+  aspect-ratio: 1 / 1;
+  max-height: 100%;
   background: white;
-  border: 3px solid #333;
-  border-radius: 20px;
-  margin: 22px auto;
+  border: 2px solid #333;
+  border-radius: 16px;
   position: relative;
   touch-action: none;
 }
 
 #cursor {
   position: absolute;
-  width: 35px;
-  height: 35px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #333;
+  background: #222;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
-#status {
-  margin: 12px;
+.side {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 6px;
 }
 
-.panel {
-  max-width: 430px;
-  margin: 18px auto;
-  padding: 16px;
+.card {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
+  padding: 7px;
 }
 
-.mode-grid {
+.label {
+  margin: 0 0 5px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #555;
+}
+
+.expression-grid,
+.auto-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 4px;
 }
 
-.mode {
-  background: #eee;
-  border: 2px solid transparent;
-  border-radius: 12px;
+.auto-grid .wide {
+  grid-column: span 2;
 }
 
-.mode.active {
-  border-color: #333;
-  background: #ddd;
-  font-weight: bold;
+.choice {
+  min-width: 0;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  background: #f5f5f5;
+  padding: 6px 3px;
+  min-height: 34px;
+  font-size: 11px;
+  line-height: 1.05;
+}
+
+.choice.active {
+  background: #222;
+  color: white;
+  border-color: #222;
+  font-weight: 800;
+}
+
+.bottom-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.action {
+  border: 0;
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 8px;
+  font-weight: 800;
 }
 
 #blinkButton {
-  width: min(320px, 85vw);
-  font-size: 20px;
+  background: #222;
+  color: white;
 }
 
-.note {
+#centerButton {
+  background: white;
+  color: #222;
+  border: 1px solid #bbb;
+}
+
+.footer {
+  text-align: center;
+  font-size: 10px;
   color: #666;
-  font-size: 13px;
-  margin-top: 8px;
+  line-height: 1.1;
+}
+
+/* Narrow portrait phones such as iPhone SE */
+@media (max-width: 390px) {
+  #app {
+    gap: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .main {
+    grid-template-columns: minmax(0, 1.08fr) minmax(122px, .92fr);
+    gap: 5px;
+  }
+
+  .card {
+    padding: 5px;
+  }
+
+  .choice {
+    padding: 5px 2px;
+    min-height: 32px;
+    font-size: 10px;
+  }
+
+  .label {
+    font-size: 10px;
+  }
+
+  #cursor {
+    width: 24px;
+    height: 24px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h2>👁 EYE CONTROLLER</h2>
+<div id="app">
 
-<button id="connectButton">Bluetooth接続</button>
-<div id="status">未接続</div>
+  <div class="topbar">
+    <button id="connectButton">
+      Bluetooth接続
+    </button>
 
-<div id="pad">
-  <div id="cursor"></div>
-</div>
+    <div id="status">
+      未接続
+    </div>
+  </div>
 
-<p>指で目線を操作</p>
+  <div class="main">
 
-<div class="panel">
+    <div class="pad-wrap">
+      <div id="pad">
+        <div id="cursor"></div>
+      </div>
+    </div>
 
-  <h3>まぶたモード</h3>
+    <div class="side">
 
-  <div class="mode-grid">
+      <section class="card">
+        <p class="label">まぶた</p>
+
+        <div class="expression-grid">
+
+          <button
+            class="choice expression active"
+            data-command="MODE:NORMAL">
+            通常<br>90°
+          </button>
+
+          <button
+            class="choice expression"
+            data-command="MODE:HALF">
+            半眼<br>110°
+          </button>
+
+          <button
+            class="choice expression"
+            data-command="MODE:JITO">
+            ジト目<br>125°
+          </button>
+
+          <button
+            class="choice expression"
+            data-command="MODE:SURPRISE">
+            驚き<br>65°
+          </button>
+
+        </div>
+      </section>
+
+      <section class="card">
+        <p class="label">放置時の視線</p>
+
+        <div class="auto-grid">
+
+          <button
+            class="choice auto active"
+            data-command="AUTO:KYORO">
+            キョロキョロ
+          </button>
+
+          <button
+            class="choice auto"
+            data-command="AUTO:NIDOMI">
+            二度見
+          </button>
+
+          <button
+            class="choice auto"
+            data-command="AUTO:PANIC">
+            慌てる
+          </button>
+
+          <button
+            class="choice auto"
+            data-command="AUTO:SLEEPY">
+            眠る
+          </button>
+
+          <button
+            class="choice auto wide"
+            data-command="AUTO:SUSPICIOUS">
+            怪しむ
+          </button>
+
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <div class="bottom-actions">
 
     <button
-      class="mode active"
-      data-command="MODE:NORMAL"
-      data-name="通常">
-      通常
-      <br>
-      90°
+      id="blinkButton"
+      class="action">
+      まばたき
     </button>
 
     <button
-      class="mode"
-      data-command="MODE:HALF"
-      data-name="半眼">
-      半眼
-      <br>
-      110°
-    </button>
-
-    <button
-      class="mode"
-      data-command="MODE:JITO"
-      data-name="ジト目">
-      ジト目
-      <br>
-      125°
-    </button>
-
-    <button
-      class="mode"
-      data-command="MODE:SURPRISE"
-      data-name="驚き">
-      驚き
-      <br>
-      65°
+      id="centerButton"
+      class="action">
+      中央
     </button>
 
   </div>
 
-  <div id="modeStatus" class="note">
-    現在：通常
+  <div class="footer">
+    手動視線を優先・約2.2秒後にセミオート復帰
   </div>
 
-</div>
-
-<button id="blinkButton">
-まばたき
-</button>
-
-<div class="note">
-  自動まばたき：約2.8〜5.2秒間隔
 </div>
 
 <script>
@@ -186,9 +369,6 @@ const cursor =
 const status =
   document.getElementById("status");
 
-const modeStatus =
-  document.getElementById("modeStatus");
-
 async function connectBLE() {
 
   try {
@@ -216,14 +396,14 @@ async function connectBLE() {
         CHAR_UUID
       );
 
-    status.innerText =
+    status.textContent =
       "接続済み";
 
   }
 
   catch(error) {
 
-    status.innerText =
+    status.textContent =
       "接続エラー";
 
     console.log(error);
@@ -247,7 +427,7 @@ async function sendCommand(command) {
   );
 }
 
-function updatePosition(event) {
+function updatePad(event) {
 
   event.preventDefault();
 
@@ -255,10 +435,12 @@ function updatePosition(event) {
     pad.getBoundingClientRect();
 
   let x =
-    event.clientX - rect.left;
+    event.clientX -
+    rect.left;
 
   let y =
-    event.clientY - rect.top;
+    event.clientY -
+    rect.top;
 
   x =
     Math.max(
@@ -281,13 +463,15 @@ function updatePosition(event) {
   latestX =
     Math.round(
       30 +
-      (x / rect.width) * 120
+      (x / rect.width) *
+      120
     );
 
   latestY =
     Math.round(
       30 +
-      (y / rect.height) * 120
+      (y / rect.height) *
+      120
     );
 }
 
@@ -301,7 +485,8 @@ pad.addEventListener(
       event.pointerId
     );
 
-    updatePosition(event);
+    updatePad(event);
+
   }
 );
 
@@ -313,7 +498,8 @@ pad.addEventListener(
       return;
     }
 
-    updatePosition(event);
+    updatePad(event);
+
   }
 );
 
@@ -335,7 +521,7 @@ pad.addEventListener(
   }
 );
 
-// Eye position: 10 Hz
+// Latest gaze only, 10 Hz.
 setInterval(
   async () => {
 
@@ -391,73 +577,87 @@ setInterval(
 
 // Expression buttons
 document
-  .querySelectorAll(".mode")
+  .querySelectorAll(".expression")
   .forEach(button => {
 
     button.addEventListener(
       "click",
       async () => {
 
-        try {
-
-          await sendCommand(
-            button.dataset.command
-          );
-
-          document
-            .querySelectorAll(".mode")
-            .forEach(b => {
-              b.classList.remove("active");
-            });
-
-          button.classList.add(
-            "active"
-          );
-
-          modeStatus.innerText =
-            "現在：" +
-            button.dataset.name;
-
-        }
-
-        catch(error) {
-
-          console.log(error);
-
-        }
-      }
-    );
-  });
-
-// Manual blink
-document
-  .getElementById(
-    "blinkButton"
-  )
-  .addEventListener(
-    "click",
-    async () => {
-
-      try {
-
         await sendCommand(
-          "BLINK"
+          button.dataset.command
         );
 
+        document
+          .querySelectorAll(".expression")
+          .forEach(item =>
+            item.classList.remove("active")
+          );
+
+        button.classList.add("active");
+
       }
+    );
 
-      catch(error) {
+  });
 
-        console.log(error);
+// Auto gaze mode buttons
+document
+  .querySelectorAll(".auto")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        await sendCommand(
+          button.dataset.command
+        );
+
+        document
+          .querySelectorAll(".auto")
+          .forEach(item =>
+            item.classList.remove("active")
+          );
+
+        button.classList.add("active");
 
       }
+    );
+
+  });
+
+document
+  .getElementById("blinkButton")
+  .addEventListener(
+    "click",
+    () => {
+
+      sendCommand("BLINK");
+
     }
   );
 
 document
-  .getElementById(
-    "connectButton"
-  )
+  .getElementById("centerButton")
+  .addEventListener(
+    "click",
+    () => {
+
+      // Center of UI range.
+      latestX = 90;
+      latestY = 90;
+
+      cursor.style.left = "50%";
+      cursor.style.top = "50%";
+
+      sendCommand("XY:90,90");
+
+    }
+  );
+
+document
+  .getElementById("connectButton")
   .addEventListener(
     "click",
     connectBLE
