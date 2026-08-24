@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Eye Controller</title>
 
 <style>
+
 body {
   font-family: sans-serif;
   text-align: center;
@@ -24,25 +28,36 @@ button {
 #pad {
   width: 300px;
   height: 300px;
+
   max-width: 85vw;
   max-height: 85vw;
+
   background: white;
+
   border: 3px solid #333;
   border-radius: 20px;
+
   margin: 25px auto;
+
   position: relative;
+
   touch-action: none;
 }
 
 #cursor {
   position: absolute;
+
   width: 35px;
   height: 35px;
+
   border-radius: 50%;
   background: #333;
+
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+
+  transform:
+    translate(-50%, -50%);
 }
 
 #status {
@@ -54,14 +69,16 @@ button {
   color: #666;
   margin-top: 15px;
 }
+
 </style>
 </head>
+
 
 <body>
 
 <h2>👁 EYE CONTROLLER</h2>
 
-<button onclick="connectBLE()">
+<button id="connectButton">
 Bluetooth接続
 </button>
 
@@ -69,21 +86,31 @@ Bluetooth接続
 未接続
 </div>
 
+
 <div id="pad">
   <div id="cursor"></div>
 </div>
 
-<p>指で目線を操作</p>
+<p>
+指で目線を操作
+</p>
 
-<button onclick="blink()">
+
+<button id="blinkButton">
 まばたき
 </button>
+
 
 <div id="debug">
 送信レート：10Hz
 </div>
 
+
 <script>
+
+// ==========================================
+// BLE
+// ==========================================
 
 const SERVICE_UUID =
 "7d7a0001-7d7a-4a01-9000-123456789abc";
@@ -91,10 +118,12 @@ const SERVICE_UUID =
 const CHAR_UUID =
 "7d7a0002-7d7a-4a01-9000-123456789abc";
 
+
 let characteristic = null;
 
+
 // ==========================================
-// 最新座標
+// Eye position
 // ==========================================
 
 let latestX = 90;
@@ -105,87 +134,11 @@ let lastSentY = null;
 
 let isTouching = false;
 
-// ==========================================
-// BLE接続
-// ==========================================
+let sending = false;
 
-async function connectBLE() {
-
-  try {
-
-    const device =
-      await navigator.bluetooth.requestDevice({
-        filters: [
-          { name: "EYE-ATOM" }
-        ],
-        optionalServices: [
-          SERVICE_UUID
-        ]
-      });
-
-    const server =
-      await device.gatt.connect();
-
-    const service =
-      await server.getPrimaryService(
-        SERVICE_UUID
-      );
-
-    characteristic =
-      await service.getCharacteristic(
-        CHAR_UUID
-      );
-
-    document.getElementById("status")
-      .innerText = "接続済み";
-
-  }
-
-  catch(error) {
-
-    document.getElementById("status")
-      .innerText = error;
-
-  }
-}
 
 // ==========================================
-// BLE送信
-// ==========================================
-
-async function sendCommand(command) {
-
-  if (!characteristic) return;
-
-  const data =
-    new TextEncoder().encode(command);
-
-  try {
-
-    // WRITE_NRが使える場合はこちらが軽い
-    if (characteristic.writeValueWithoutResponse) {
-
-      await characteristic
-        .writeValueWithoutResponse(data);
-
-    } else {
-
-      await characteristic
-        .writeValue(data);
-
-    }
-
-  }
-
-  catch(error) {
-
-    console.log(error);
-
-  }
-}
-
-// ==========================================
-// 操作パッド
+// Elements
 // ==========================================
 
 const pad =
@@ -194,51 +147,175 @@ const pad =
 const cursor =
   document.getElementById("cursor");
 
+const status =
+  document.getElementById("status");
+
+const debug =
+  document.getElementById("debug");
+
+
+// ==========================================
+// BLE connect
+// ==========================================
+
+async function connectBLE() {
+
+  try {
+
+    const device =
+      await navigator.bluetooth.requestDevice({
+
+        filters: [
+          {
+            name: "EYE-ATOM"
+          }
+        ],
+
+        optionalServices: [
+          SERVICE_UUID
+        ]
+
+      });
+
+
+    const server =
+      await device.gatt.connect();
+
+
+    const service =
+      await server.getPrimaryService(
+        SERVICE_UUID
+      );
+
+
+    characteristic =
+      await service.getCharacteristic(
+        CHAR_UUID
+      );
+
+
+    status.innerText =
+      "接続済み";
+
+  }
+
+  catch(error) {
+
+    status.innerText =
+      "接続エラー";
+
+    console.log(error);
+
+  }
+}
+
+
+// ==========================================
+// BLE send
+// ==========================================
+
+async function sendCommand(command) {
+
+  if (!characteristic) {
+    return;
+  }
+
+
+  const data =
+    new TextEncoder().encode(
+      command
+    );
+
+
+  try {
+
+    await characteristic.writeValue(
+      data
+    );
+
+  }
+
+  catch(error) {
+
+    console.log(error);
+
+  }
+
+}
+
+
+// ==========================================
+// Pad
+// ==========================================
+
 function updatePosition(event) {
 
   event.preventDefault();
 
+
   const rect =
     pad.getBoundingClientRect();
 
+
   let x =
-    event.clientX - rect.left;
+    event.clientX -
+    rect.left;
+
 
   let y =
-    event.clientY - rect.top;
+    event.clientY -
+    rect.top;
 
-  x =
-    Math.max(
-      0,
-      Math.min(rect.width, x)
-    );
 
-  y =
-    Math.max(
-      0,
-      Math.min(rect.height, y)
-    );
+  x = Math.max(
+    0,
+    Math.min(
+      rect.width,
+      x
+    )
+  );
 
-  // 画面上のカーソルだけは即時追従
-  cursor.style.left = x + "px";
-  cursor.style.top  = y + "px";
 
-  // Web UI座標 → 30〜150
+  y = Math.max(
+    0,
+    Math.min(
+      rect.height,
+      y
+    )
+  );
+
+
+  // カーソルはリアルタイム表示
+
+  cursor.style.left =
+    x + "px";
+
+  cursor.style.top =
+    y + "px";
+
+
+  // 30 ～ 150に変換
+
   latestX =
     Math.round(
       30 +
-      (x / rect.width) * 120
+      (x / rect.width) *
+      120
     );
+
 
   latestY =
     Math.round(
       30 +
-      (y / rect.height) * 120
+      (y / rect.height) *
+      120
     );
+
 }
 
+
 // ==========================================
-// Pointer events
+// Pointer
 // ==========================================
 
 pad.addEventListener(
@@ -251,37 +328,39 @@ pad.addEventListener(
       event.pointerId
     );
 
-    updatePosition(event);
+    updatePosition(
+      event
+    );
 
   }
 );
+
 
 pad.addEventListener(
   "pointermove",
   event => {
 
-    if (!isTouching) return;
+    if (!isTouching) {
+      return;
+    }
 
-    updatePosition(event);
+    updatePosition(
+      event
+    );
 
   }
 );
+
 
 pad.addEventListener(
   "pointerup",
-  event => {
+  () => {
 
     isTouching = false;
 
-    try {
-      pad.releasePointerCapture(
-        event.pointerId
-      );
-    }
-    catch(e) {}
-
   }
 );
+
 
 pad.addEventListener(
   "pointercancel",
@@ -292,57 +371,110 @@ pad.addEventListener(
   }
 );
 
-// ==========================================
-// 10Hz送信
-// 100msごとに最新座標だけ送る
-// ==========================================
-
-setInterval(async () => {
-
-  if (!isTouching) return;
-
-  if (!characteristic) return;
-
-  // Xが変化したときだけ送信
-  if (latestX !== lastSentX) {
-
-    await sendCommand(
-      "X:" + latestX
-    );
-
-    lastSentX = latestX;
-
-  }
-
-  // Yが変化したときだけ送信
-  if (latestY !== lastSentY) {
-
-    await sendCommand(
-      "Y:" + latestY
-    );
-
-    lastSentY = latestY;
-
-  }
-
-  document.getElementById("debug")
-    .innerText =
-      "送信レート：10Hz　X:" +
-      latestX +
-      " Y:" +
-      latestY;
-
-}, 100);
 
 // ==========================================
-// まばたき
+// 10Hz eye transmission
 // ==========================================
 
-function blink() {
+setInterval(
+  async () => {
 
-  sendCommand("BLINK");
+    if (!isTouching) {
+      return;
+    }
 
-}
+    if (!characteristic) {
+      return;
+    }
+
+    // 前回のBLE送信がまだ終わっていたら
+    // 新しい命令を送らない
+    if (sending) {
+      return;
+    }
+
+
+    // 座標が変わっていなければ送らない
+    if (
+      latestX === lastSentX &&
+      latestY === lastSentY
+    ) {
+
+      return;
+
+    }
+
+
+    sending = true;
+
+
+    try {
+
+      // X/Yを1パケットで送信
+
+      await sendCommand(
+        "XY:" +
+        latestX +
+        "," +
+        latestY
+      );
+
+
+      lastSentX =
+        latestX;
+
+      lastSentY =
+        latestY;
+
+
+      debug.innerText =
+        "10Hz　X:" +
+        latestX +
+        " Y:" +
+        latestY;
+
+    }
+
+    finally {
+
+      sending = false;
+
+    }
+
+  },
+
+  100
+);
+
+
+// ==========================================
+// Blink
+// ==========================================
+
+document
+  .getElementById(
+    "blinkButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      sendCommand(
+        "BLINK"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "connectButton"
+  )
+  .addEventListener(
+    "click",
+    connectBLE
+  );
 
 </script>
 
