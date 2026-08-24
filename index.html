@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Eye Controller</title>
 
 <style>
-
 body {
   font-family: sans-serif;
   text-align: center;
@@ -29,32 +26,22 @@ button {
   height: 300px;
   max-width: 85vw;
   max-height: 85vw;
-
   background: white;
-
   border: 3px solid #333;
   border-radius: 20px;
-
   margin: 25px auto;
-
   position: relative;
-
   touch-action: none;
 }
 
 #cursor {
-
   position: absolute;
-
   width: 35px;
   height: 35px;
-
   border-radius: 50%;
   background: #333;
-
   left: 50%;
   top: 50%;
-
   transform: translate(-50%, -50%);
 }
 
@@ -62,8 +49,12 @@ button {
   margin: 15px;
 }
 
+#debug {
+  font-size: 14px;
+  color: #666;
+  margin-top: 15px;
+}
 </style>
-
 </head>
 
 <body>
@@ -88,6 +79,10 @@ Bluetooth接続
 まばたき
 </button>
 
+<div id="debug">
+送信レート：10Hz
+</div>
+
 <script>
 
 const SERVICE_UUID =
@@ -98,16 +93,32 @@ const CHAR_UUID =
 
 let characteristic = null;
 
+// ==========================================
+// 最新座標
+// ==========================================
+
+let latestX = 90;
+let latestY = 90;
+
+let lastSentX = null;
+let lastSentY = null;
+
+let isTouching = false;
+
+// ==========================================
+// BLE接続
+// ==========================================
+
 async function connectBLE() {
 
   try {
 
     const device =
       await navigator.bluetooth.requestDevice({
-        filters:[
-          {name:"EYE-ATOM"}
+        filters: [
+          { name: "EYE-ATOM" }
         ],
-        optionalServices:[
+        optionalServices: [
           SERVICE_UUID
         ]
       });
@@ -138,6 +149,9 @@ async function connectBLE() {
   }
 }
 
+// ==========================================
+// BLE送信
+// ==========================================
 
 async function sendCommand(command) {
 
@@ -148,15 +162,31 @@ async function sendCommand(command) {
 
   try {
 
-    await characteristic.writeValue(data);
+    // WRITE_NRが使える場合はこちらが軽い
+    if (characteristic.writeValueWithoutResponse) {
+
+      await characteristic
+        .writeValueWithoutResponse(data);
+
+    } else {
+
+      await characteristic
+        .writeValue(data);
+
+    }
 
   }
 
   catch(error) {
+
     console.log(error);
+
   }
 }
 
+// ==========================================
+// 操作パッド
+// ==========================================
 
 const pad =
   document.getElementById("pad");
@@ -164,8 +194,7 @@ const pad =
 const cursor =
   document.getElementById("cursor");
 
-
-function moveEye(event) {
+function updatePosition(event) {
 
   event.preventDefault();
 
@@ -179,49 +208,135 @@ function moveEye(event) {
     event.clientY - rect.top;
 
   x =
-    Math.max(0, Math.min(rect.width, x));
+    Math.max(
+      0,
+      Math.min(rect.width, x)
+    );
 
   y =
-    Math.max(0, Math.min(rect.height, y));
+    Math.max(
+      0,
+      Math.min(rect.height, y)
+    );
 
+  // 画面上のカーソルだけは即時追従
   cursor.style.left = x + "px";
   cursor.style.top  = y + "px";
 
-  // 画面座標 → サーボ角度
-  const angleX =
+  // Web UI座標 → 30〜150
+  latestX =
     Math.round(
-      30 + (x / rect.width) * 120
+      30 +
+      (x / rect.width) * 120
     );
 
-  const angleY =
+  latestY =
     Math.round(
-      30 + (y / rect.height) * 120
+      30 +
+      (y / rect.height) * 120
     );
-
-  sendCommand("X:" + angleX);
-  sendCommand("Y:" + angleY);
 }
 
+// ==========================================
+// Pointer events
+// ==========================================
 
 pad.addEventListener(
   "pointerdown",
-  moveEye
+  event => {
+
+    isTouching = true;
+
+    pad.setPointerCapture(
+      event.pointerId
+    );
+
+    updatePosition(event);
+
+  }
 );
 
 pad.addEventListener(
   "pointermove",
   event => {
 
-    if (event.buttons ||
-        event.pointerType === "touch") {
+    if (!isTouching) return;
 
-      moveEye(event);
-
-    }
+    updatePosition(event);
 
   }
 );
 
+pad.addEventListener(
+  "pointerup",
+  event => {
+
+    isTouching = false;
+
+    try {
+      pad.releasePointerCapture(
+        event.pointerId
+      );
+    }
+    catch(e) {}
+
+  }
+);
+
+pad.addEventListener(
+  "pointercancel",
+  () => {
+
+    isTouching = false;
+
+  }
+);
+
+// ==========================================
+// 10Hz送信
+// 100msごとに最新座標だけ送る
+// ==========================================
+
+setInterval(async () => {
+
+  if (!isTouching) return;
+
+  if (!characteristic) return;
+
+  // Xが変化したときだけ送信
+  if (latestX !== lastSentX) {
+
+    await sendCommand(
+      "X:" + latestX
+    );
+
+    lastSentX = latestX;
+
+  }
+
+  // Yが変化したときだけ送信
+  if (latestY !== lastSentY) {
+
+    await sendCommand(
+      "Y:" + latestY
+    );
+
+    lastSentY = latestY;
+
+  }
+
+  document.getElementById("debug")
+    .innerText =
+      "送信レート：10Hz　X:" +
+      latestX +
+      " Y:" +
+      latestY;
+
+}, 100);
+
+// ==========================================
+// まばたき
+// ==========================================
 
 function blink() {
 
