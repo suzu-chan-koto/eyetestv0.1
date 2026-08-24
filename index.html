@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Eye Controller</title>
 
@@ -12,23 +13,53 @@
 body {
   font-family: sans-serif;
   text-align: center;
-  padding: 30px;
-  background: #f5f5f5;
+  background: #f4f4f4;
+  padding: 20px;
+  user-select: none;
 }
 
 button {
-  font-size: 20px;
-  padding: 15px 30px;
-  margin-bottom: 40px;
+  font-size: 18px;
+  padding: 14px 25px;
+  margin: 10px;
 }
 
-input[type="range"] {
-  width: 90%;
+#pad {
+  width: 300px;
+  height: 300px;
+  max-width: 85vw;
+  max-height: 85vw;
+
+  background: white;
+
+  border: 3px solid #333;
+  border-radius: 20px;
+
+  margin: 25px auto;
+
+  position: relative;
+
+  touch-action: none;
 }
 
-#angle {
-  font-size: 40px;
-  margin: 20px;
+#cursor {
+
+  position: absolute;
+
+  width: 35px;
+  height: 35px;
+
+  border-radius: 50%;
+  background: #333;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+#status {
+  margin: 15px;
 }
 
 </style>
@@ -37,30 +68,32 @@ input[type="range"] {
 
 <body>
 
-<h1>👁 Eye Controller</h1>
+<h2>👁 EYE CONTROLLER</h2>
 
 <button onclick="connectBLE()">
 Bluetooth接続
 </button>
 
-<div id="angle">90°</div>
+<div id="status">
+未接続
+</div>
 
-<input
-  id="slider"
-  type="range"
-  min="20"
-  max="160"
-  value="90"
->
+<div id="pad">
+  <div id="cursor"></div>
+</div>
 
-<p>← LEFT　　RIGHT →</p>
+<p>指で目線を操作</p>
+
+<button onclick="blink()">
+まばたき
+</button>
 
 <script>
 
 const SERVICE_UUID =
 "7d7a0001-7d7a-4a01-9000-123456789abc";
 
-const CHARACTERISTIC_UUID =
+const CHAR_UUID =
 "7d7a0002-7d7a-4a01-9000-123456789abc";
 
 let characteristic = null;
@@ -71,10 +104,10 @@ async function connectBLE() {
 
     const device =
       await navigator.bluetooth.requestDevice({
-        filters: [
-          { name: "EYE-ATOM" }
+        filters:[
+          {name:"EYE-ATOM"}
         ],
-        optionalServices: [
+        optionalServices:[
           SERVICE_UUID
         ]
       });
@@ -89,48 +122,114 @@ async function connectBLE() {
 
     characteristic =
       await service.getCharacteristic(
-        CHARACTERISTIC_UUID
+        CHAR_UUID
       );
 
-    alert("接続成功！");
+    document.getElementById("status")
+      .innerText = "接続済み";
 
   }
 
   catch(error) {
-    alert(error);
+
+    document.getElementById("status")
+      .innerText = error;
+
   }
 }
 
 
-const slider =
-  document.getElementById("slider");
+async function sendCommand(command) {
 
-slider.addEventListener("input", async () => {
-
-  const angle = slider.value;
-
-  document.getElementById("angle")
-    .innerText = angle + "°";
-
-  if(characteristic == null) return;
+  if (!characteristic) return;
 
   const data =
-    new TextEncoder().encode(angle);
+    new TextEncoder().encode(command);
 
   try {
 
-    await characteristic
-      .writeValue(data);
+    await characteristic.writeValue(data);
 
   }
+
   catch(error) {
     console.log(error);
   }
+}
 
-});
+
+const pad =
+  document.getElementById("pad");
+
+const cursor =
+  document.getElementById("cursor");
+
+
+function moveEye(event) {
+
+  event.preventDefault();
+
+  const rect =
+    pad.getBoundingClientRect();
+
+  let x =
+    event.clientX - rect.left;
+
+  let y =
+    event.clientY - rect.top;
+
+  x =
+    Math.max(0, Math.min(rect.width, x));
+
+  y =
+    Math.max(0, Math.min(rect.height, y));
+
+  cursor.style.left = x + "px";
+  cursor.style.top  = y + "px";
+
+  // 画面座標 → サーボ角度
+  const angleX =
+    Math.round(
+      30 + (x / rect.width) * 120
+    );
+
+  const angleY =
+    Math.round(
+      30 + (y / rect.height) * 120
+    );
+
+  sendCommand("X:" + angleX);
+  sendCommand("Y:" + angleY);
+}
+
+
+pad.addEventListener(
+  "pointerdown",
+  moveEye
+);
+
+pad.addEventListener(
+  "pointermove",
+  event => {
+
+    if (event.buttons ||
+        event.pointerType === "touch") {
+
+      moveEye(event);
+
+    }
+
+  }
+);
+
+
+function blink() {
+
+  sendCommand("BLINK");
+
+}
 
 </script>
 
 </body>
-
 </html>
