@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Eye Controller</title>
+
+<style>
+
+body {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 30px;
+  background: #f5f5f5;
+}
+
+button {
+  font-size: 20px;
+  padding: 15px 30px;
+  margin-bottom: 40px;
+}
+
+input[type="range"] {
+  width: 90%;
+}
+
+#angle {
+  font-size: 40px;
+  margin: 20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>👁 Eye Controller</h1>
+
+<button onclick="connectBLE()">
+Bluetooth接続
+</button>
+
+<div id="angle">90°</div>
+
+<input
+  id="slider"
+  type="range"
+  min="20"
+  max="160"
+  value="90"
+>
+
+<p>← LEFT　　RIGHT →</p>
+
+<script>
+
+const SERVICE_UUID =
+"7d7a0001-7d7a-4a01-9000-123456789abc";
+
+const CHARACTERISTIC_UUID =
+"7d7a0002-7d7a-4a01-9000-123456789abc";
+
+let characteristic = null;
+
+async function connectBLE() {
+
+  try {
+
+    const device =
+      await navigator.bluetooth.requestDevice({
+        filters: [
+          { name: "EYE-ATOM" }
+        ],
+        optionalServices: [
+          SERVICE_UUID
+        ]
+      });
+
+    const server =
+      await device.gatt.connect();
+
+    const service =
+      await server.getPrimaryService(
+        SERVICE_UUID
+      );
+
+    characteristic =
+      await service.getCharacteristic(
+        CHARACTERISTIC_UUID
+      );
+
+    alert("接続成功！");
+
+  }
+
+  catch(error) {
+    alert(error);
+  }
+}
+
+
+const slider =
+  document.getElementById("slider");
+
+slider.addEventListener("input", async () => {
+
+  const angle = slider.value;
+
+  document.getElementById("angle")
+    .innerText = angle + "°";
+
+  if(characteristic == null) return;
+
+  const data =
+    new TextEncoder().encode(angle);
+
+  try {
+
+    await characteristic
+      .writeValue(data);
+
+  }
+  catch(error) {
+    console.log(error);
+  }
+
+});
+
+</script>
+
+</body>
+
+</html>
