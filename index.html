@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eye Lid Calibration</title>
+<title>Eye Controller</title>
 
 <style>
 body {
@@ -15,9 +15,9 @@ body {
 }
 
 button {
-  font-size: 18px;
-  padding: 14px 25px;
-  margin: 10px;
+  font-size: 17px;
+  padding: 13px 18px;
+  margin: 6px;
 }
 
 #pad {
@@ -28,7 +28,7 @@ button {
   background: white;
   border: 3px solid #333;
   border-radius: 20px;
-  margin: 25px auto;
+  margin: 22px auto;
   position: relative;
   touch-action: none;
 }
@@ -45,37 +45,44 @@ button {
 }
 
 #status {
-  margin: 15px;
+  margin: 12px;
 }
 
-#lidPanel {
-  max-width: 420px;
-  margin: 30px auto 10px;
-  padding: 20px;
+.panel {
+  max-width: 430px;
+  margin: 18px auto;
+  padding: 16px;
   background: white;
   border-radius: 16px;
 }
 
-#lidValue {
-  font-size: 42px;
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mode {
+  background: #eee;
+  border: 2px solid transparent;
+  border-radius: 12px;
+}
+
+.mode.active {
+  border-color: #333;
+  background: #ddd;
   font-weight: bold;
-  margin: 10px;
 }
 
-#lidSlider {
-  width: 100%;
-}
-
-.labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
+#blinkButton {
+  width: min(320px, 85vw);
+  font-size: 20px;
 }
 
 .note {
   color: #666;
   font-size: 13px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 </style>
 </head>
@@ -93,32 +100,63 @@ button {
 
 <p>指で目線を操作</p>
 
-<div id="lidPanel">
-  <h3>まぶた開度</h3>
+<div class="panel">
 
-  <div id="lidValue">75°</div>
+  <h3>まぶたモード</h3>
 
-  <input
-    id="lidSlider"
-    type="range"
-    min="60"
-    max="145"
-    value="75"
-    step="1"
-  >
+  <div class="mode-grid">
 
-  <div class="labels">
-    <span>もっと開く 60°</span>
-    <span>閉じる 145°</span>
+    <button
+      class="mode active"
+      data-command="MODE:NORMAL"
+      data-name="通常">
+      通常
+      <br>
+      90°
+    </button>
+
+    <button
+      class="mode"
+      data-command="MODE:HALF"
+      data-name="半眼">
+      半眼
+      <br>
+      110°
+    </button>
+
+    <button
+      class="mode"
+      data-command="MODE:JITO"
+      data-name="ジト目">
+      ジト目
+      <br>
+      125°
+    </button>
+
+    <button
+      class="mode"
+      data-command="MODE:SURPRISE"
+      data-name="驚き">
+      驚き
+      <br>
+      65°
+    </button>
+
   </div>
 
-  <div class="note">
-    これまでの通常OPENは75°です。<br>
-    60°側は機構に無理がないか確認しながら動かしてください。
+  <div id="modeStatus" class="note">
+    現在：通常
   </div>
+
 </div>
 
-<button id="blinkButton">まばたき</button>
+<button id="blinkButton">
+まばたき
+</button>
+
+<div class="note">
+  自動まばたき：約2.8〜5.2秒間隔
+</div>
 
 <script>
 
@@ -132,21 +170,24 @@ let characteristic = null;
 
 let latestX = 90;
 let latestY = 90;
+
 let lastSentX = null;
 let lastSentY = null;
 
 let isTouching = false;
 let xySending = false;
 
-let latestLid = 75;
-let lastSentLid = null;
-let lidSending = false;
+const pad =
+  document.getElementById("pad");
 
-const pad = document.getElementById("pad");
-const cursor = document.getElementById("cursor");
-const status = document.getElementById("status");
-const lidSlider = document.getElementById("lidSlider");
-const lidValue = document.getElementById("lidValue");
+const cursor =
+  document.getElementById("cursor");
+
+const status =
+  document.getElementById("status");
+
+const modeStatus =
+  document.getElementById("modeStatus");
 
 async function connectBLE() {
 
@@ -175,11 +216,16 @@ async function connectBLE() {
         CHAR_UUID
       );
 
-    status.innerText = "接続済み";
+    status.innerText =
+      "接続済み";
 
-  } catch(error) {
+  }
 
-    status.innerText = "接続エラー";
+  catch(error) {
+
+    status.innerText =
+      "接続エラー";
+
     console.log(error);
 
   }
@@ -187,12 +233,18 @@ async function connectBLE() {
 
 async function sendCommand(command) {
 
-  if (!characteristic) return;
+  if (!characteristic) {
+    return;
+  }
 
   const data =
-    new TextEncoder().encode(command);
+    new TextEncoder().encode(
+      command
+    );
 
-  await characteristic.writeValue(data);
+  await characteristic.writeValue(
+    data
+  );
 }
 
 function updatePosition(event) {
@@ -208,136 +260,208 @@ function updatePosition(event) {
   let y =
     event.clientY - rect.top;
 
-  x = Math.max(0, Math.min(rect.width, x));
-  y = Math.max(0, Math.min(rect.height, y));
+  x =
+    Math.max(
+      0,
+      Math.min(rect.width, x)
+    );
 
-  cursor.style.left = x + "px";
-  cursor.style.top  = y + "px";
+  y =
+    Math.max(
+      0,
+      Math.min(rect.height, y)
+    );
+
+  cursor.style.left =
+    x + "px";
+
+  cursor.style.top =
+    y + "px";
 
   latestX =
     Math.round(
-      30 + (x / rect.width) * 120
+      30 +
+      (x / rect.width) * 120
     );
 
   latestY =
     Math.round(
-      30 + (y / rect.height) * 120
+      30 +
+      (y / rect.height) * 120
     );
 }
 
-pad.addEventListener("pointerdown", event => {
+pad.addEventListener(
+  "pointerdown",
+  event => {
 
-  isTouching = true;
-  pad.setPointerCapture(event.pointerId);
-  updatePosition(event);
+    isTouching = true;
 
-});
+    pad.setPointerCapture(
+      event.pointerId
+    );
 
-pad.addEventListener("pointermove", event => {
+    updatePosition(event);
+  }
+);
 
-  if (!isTouching) return;
-  updatePosition(event);
+pad.addEventListener(
+  "pointermove",
+  event => {
 
-});
+    if (!isTouching) {
+      return;
+    }
 
-pad.addEventListener("pointerup", () => {
-  isTouching = false;
-});
+    updatePosition(event);
+  }
+);
 
-pad.addEventListener("pointercancel", () => {
-  isTouching = false;
-});
+pad.addEventListener(
+  "pointerup",
+  () => {
 
-// 目線：10Hz
-setInterval(async () => {
+    isTouching = false;
 
-  if (!isTouching ||
+  }
+);
+
+pad.addEventListener(
+  "pointercancel",
+  () => {
+
+    isTouching = false;
+
+  }
+);
+
+// Eye position: 10 Hz
+setInterval(
+  async () => {
+
+    if (
+      !isTouching ||
       !characteristic ||
-      xySending) {
-    return;
-  }
+      xySending
+    ) {
+      return;
+    }
 
-  if (
-    latestX === lastSentX &&
-    latestY === lastSentY
-  ) {
-    return;
-  }
+    if (
+      latestX === lastSentX &&
+      latestY === lastSentY
+    ) {
+      return;
+    }
 
-  xySending = true;
+    xySending = true;
 
-  try {
+    try {
 
-    await sendCommand(
-      "XY:" + latestX + "," + latestY
-    );
+      await sendCommand(
+        "XY:" +
+        latestX +
+        "," +
+        latestY
+      );
 
-    lastSentX = latestX;
-    lastSentY = latestY;
+      lastSentX =
+        latestX;
 
-  } catch(error) {
+      lastSentY =
+        latestY;
 
-    console.log(error);
+    }
 
-  } finally {
+    catch(error) {
 
-    xySending = false;
+      console.log(error);
 
-  }
+    }
 
-}, 100);
+    finally {
 
-// まぶた：スライダー表示は即時
-lidSlider.addEventListener("input", () => {
+      xySending = false;
 
-  latestLid =
-    Number(lidSlider.value);
+    }
 
-  lidValue.innerText =
-    latestLid + "°";
+  },
+  100
+);
 
-});
-
-// BLE送信は20Hzまで
-setInterval(async () => {
-
-  if (!characteristic ||
-      lidSending ||
-      latestLid === lastSentLid) {
-    return;
-  }
-
-  lidSending = true;
-
-  try {
-
-    await sendCommand(
-      "LID:" + latestLid
-    );
-
-    lastSentLid = latestLid;
-
-  } catch(error) {
-
-    console.log(error);
-
-  } finally {
-
-    lidSending = false;
-
-  }
-
-}, 50);
-
+// Expression buttons
 document
-  .getElementById("blinkButton")
-  .addEventListener("click", () => {
-    sendCommand("BLINK");
+  .querySelectorAll(".mode")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          await sendCommand(
+            button.dataset.command
+          );
+
+          document
+            .querySelectorAll(".mode")
+            .forEach(b => {
+              b.classList.remove("active");
+            });
+
+          button.classList.add(
+            "active"
+          );
+
+          modeStatus.innerText =
+            "現在：" +
+            button.dataset.name;
+
+        }
+
+        catch(error) {
+
+          console.log(error);
+
+        }
+      }
+    );
   });
 
+// Manual blink
 document
-  .getElementById("connectButton")
-  .addEventListener("click", connectBLE);
+  .getElementById(
+    "blinkButton"
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await sendCommand(
+          "BLINK"
+        );
+
+      }
+
+      catch(error) {
+
+        console.log(error);
+
+      }
+    }
+  );
+
+document
+  .getElementById(
+    "connectButton"
+  )
+  .addEventListener(
+    "click",
+    connectBLE
+  );
 
 </script>
 
