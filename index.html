@@ -2,712 +2,300 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Focus Eye</title>
 
 <style>
-
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html,
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin:0; width:100%; min-height:100%; }
 body {
-  margin: 0;
-  width: 100%;
-  min-height: 100%;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f2f3f5; color:#1f2227;
 }
-
-body {
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  background: #f2f3f5;
-  color: #1f2227;
-}
-
-button {
-  font-family: inherit;
-}
-
+button,input { font-family:inherit; }
 #app {
-  width: min(100%, 430px);
-  margin: 0 auto;
-  padding:
-    max(10px, env(safe-area-inset-top))
-    12px
-    max(14px, env(safe-area-inset-bottom));
+  width:min(100%,430px); margin:0 auto;
+  padding:max(10px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom));
 }
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 22px;
-}
-
+.topbar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+h1 { margin:0; font-size:22px; }
 #connectButton {
-  border: 0;
-  border-radius: 10px;
-  padding: 9px 12px;
-  background: #1f2227;
-  color: white;
-  font-weight: 800;
+  border:0; border-radius:10px; padding:9px 12px;
+  background:#1f2227; color:white; font-weight:800;
 }
-
-#connectButton.connected {
-  background: #535961;
-}
-
-#status {
-  font-size: 11px;
-  color: #777;
-  margin-top: 3px;
-}
+#connectButton.connected { background:#535961; }
+#status { font-size:11px; color:#777; margin-top:3px; }
 
 .tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  background: #e6e8eb;
-  border-radius: 12px;
-  padding: 4px;
-  margin-bottom: 10px;
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;
+  background:#e6e8eb; border-radius:12px; padding:4px; margin-bottom:10px;
 }
-
 .tab {
-  border: 0;
-  border-radius: 9px;
-  padding: 9px 6px;
-  background: transparent;
-  font-weight: 800;
-  color: #62676e;
+  border:0; border-radius:9px; padding:9px 4px;
+  background:transparent; font-weight:800; color:#62676e; font-size:12px;
 }
+.tab.active { background:white; color:#1f2227; }
 
-.tab.active {
-  background: white;
-  color: #1f2227;
-}
-
-.page {
-  display: none;
-}
-
-.page.active {
-  display: block;
-}
+.page { display:none; }
+.page.active { display:block; }
 
 .card {
-  background: white;
-  border-radius: 15px;
-  padding: 14px;
-  margin-bottom: 9px;
+  background:white; border-radius:15px; padding:14px; margin-bottom:9px;
 }
+.presenceRow { display:flex; align-items:center; gap:9px; }
+.dot { width:13px; height:13px; border-radius:50%; background:#adb1b6; }
+.dot.on { background:#1f2227; }
+#presenceText { font-size:20px; font-weight:850; }
+.sub { color:#777; font-size:11px; margin-top:4px; }
 
-.presenceRow {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #adb1b6;
-}
-
-.dot.on {
-  background: #1f2227;
-}
-
-#presenceText {
-  font-size: 20px;
-  font-weight: 850;
-}
-
-.sub {
-  color: #777;
-  font-size: 11px;
-  margin-top: 4px;
-}
-
-.focusTimerLabel {
-  color: #777;
-  font-size: 12px;
-}
-
+.focusTimerLabel { color:#777; font-size:12px; }
 #focusTime {
-  margin-top: 2px;
-  font-size: 51px;
-  font-weight: 850;
-  letter-spacing: -1px;
-  font-variant-numeric: tabular-nums;
+  margin-top:2px; font-size:51px; font-weight:850; letter-spacing:-1px;
+  font-variant-numeric:tabular-nums;
 }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.metric { background:#f4f5f6; border-radius:11px; padding:11px; }
+.metricTitle { font-size:10px; color:#777; }
+.metricValue { margin-top:4px; font-size:19px; font-weight:800; }
 
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
+.stageBar { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:10px; }
+.stage { height:6px; border-radius:999px; background:#dfe2e5; }
+.stage.on { background:#333; }
 
-.metric {
-  background: #f4f5f6;
-  border-radius: 11px;
-  padding: 11px;
-}
-
-.metricTitle {
-  font-size: 10px;
-  color: #777;
-}
-
-.metricValue {
-  margin-top: 4px;
-  font-size: 19px;
-  font-weight: 800;
-}
-
-.stageBar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  margin-top: 10px;
-}
-
-.stage {
-  height: 6px;
-  border-radius: 999px;
-  background: #dfe2e5;
-}
-
-.stage.on {
-  background: #333;
-}
-
-.powerRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-}
-
-.powerTitle {
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.switch {
-  position: relative;
-  width: 52px;
-  height: 30px;
-  flex: 0 0 auto;
-}
-
-.switch input {
-  display: none;
-}
-
-.slider {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: #d5d8dc;
-}
-
+.powerRow { display:flex; justify-content:space-between; align-items:center; gap:15px; }
+.powerTitle { font-size:14px; font-weight:800; }
+.switch { position:relative; width:52px; height:30px; flex:0 0 auto; }
+.switch input { display:none; }
+.slider { position:absolute; inset:0; border-radius:999px; background:#d5d8dc; }
 .slider::before {
-  content: "";
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  left: 3px;
-  top: 3px;
-  border-radius: 50%;
-  background: white;
-  transition: .15s;
+  content:""; position:absolute; width:24px; height:24px; left:3px; top:3px;
+  border-radius:50%; background:white; transition:.15s;
 }
+.switch input:checked + .slider { background:#282c31; }
+.switch input:checked + .slider::before { transform:translateX(22px); }
 
-.switch input:checked + .slider {
-  background: #282c31;
+.rangeRow { display:grid; grid-template-columns:1fr 58px; gap:10px; align-items:center; }
+input[type="range"] { width:100%; }
+#distanceSettingValue { text-align:right; font-size:14px; font-weight:800; }
+
+/* History */
+.summaryHero { display:grid; grid-template-columns:1.2fr .8fr; gap:8px; }
+.heroBox { background:#f4f5f6; border-radius:12px; padding:13px; }
+.heroLabel { font-size:11px; color:#777; }
+.heroValue { font-size:28px; font-weight:850; margin-top:3px; font-variant-numeric:tabular-nums; }
+.historyTitle { font-size:14px; font-weight:850; margin-bottom:8px; }
+.sessionList { display:grid; gap:6px; }
+.sessionRow {
+  display:grid; grid-template-columns:1fr auto;
+  gap:10px; align-items:center;
+  background:#f5f6f7; border-radius:10px; padding:10px 11px;
 }
-
-.switch input:checked + .slider::before {
-  transform: translateX(22px);
-}
-
-.rangeRow {
-  display: grid;
-  grid-template-columns: 1fr 58px;
-  gap: 10px;
-  align-items: center;
-}
-
-input[type="range"] {
-  width: 100%;
-}
-
-#distanceSettingValue {
-  text-align: right;
-  font-size: 14px;
-  font-weight: 800;
+.sessionTime { font-weight:800; font-size:14px; }
+.sessionMeta { font-size:10px; color:#777; margin-top:2px; }
+.sessionDuration { font-weight:850; font-variant-numeric:tabular-nums; }
+.empty { text-align:center; color:#8a8f95; font-size:12px; padding:20px 0; }
+.dangerButton {
+  width:100%; border:1px solid #d4d7da; background:white;
+  border-radius:10px; padding:10px; font-size:12px; font-weight:800;
 }
 
 /* Remote */
-
-.remoteLayout {
-  display: grid;
-  grid-template-columns: 1.15fr .85fr;
-  gap: 9px;
-}
-
+.remoteLayout { display:grid; grid-template-columns:1.15fr .85fr; gap:9px; }
 .gazePad {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  position:relative; width:100%; aspect-ratio:1/1;
   background:
-    linear-gradient(#eceef0 1px, transparent 1px),
-    linear-gradient(90deg, #eceef0 1px, transparent 1px),
+    linear-gradient(#eceef0 1px,transparent 1px),
+    linear-gradient(90deg,#eceef0 1px,transparent 1px),
     #fafafa;
-  background-size: 25% 25%;
-  border: 1px solid #d6d9dd;
-  border-radius: 15px;
-  touch-action: none;
-  overflow: hidden;
+  background-size:25% 25%;
+  border:1px solid #d6d9dd; border-radius:15px;
+  touch-action:none; overflow:hidden;
 }
-
-.gazePad::before,
-.gazePad::after {
-  content: "";
-  position: absolute;
-  background: #c9ccd0;
-}
-
-.gazePad::before {
-  width: 1px;
-  height: 100%;
-  left: 50%;
-  top: 0;
-}
-
-.gazePad::after {
-  height: 1px;
-  width: 100%;
-  top: 50%;
-  left: 0;
-}
-
+.gazePad::before,.gazePad::after { content:""; position:absolute; background:#c9ccd0; }
+.gazePad::before { width:1px; height:100%; left:50%; top:0; }
+.gazePad::after { height:1px; width:100%; top:50%; left:0; }
 .cursor {
-  position: absolute;
-  width: 19px;
-  height: 19px;
-  border-radius: 50%;
-  background: #24282d;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  position:absolute; width:19px; height:19px; border-radius:50%;
+  background:#24282d; left:50%; top:50%; transform:translate(-50%,-50%);
+  pointer-events:none;
 }
-
-.controlStack {
-  display: grid;
-  gap: 7px;
-  align-content: start;
-}
-
+.controlStack { display:grid; gap:7px; align-content:start; }
 .controlButton {
-  min-height: 42px;
-  border: 1px solid #d3d6da;
-  border-radius: 10px;
-  background: white;
-  font-size: 13px;
-  font-weight: 800;
+  min-height:42px; border:1px solid #d3d6da; border-radius:10px;
+  background:white; font-size:13px; font-weight:800;
 }
-
-.expressionGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
+.expressionGrid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
 .expressionButton {
-  border: 1px solid #d3d6da;
-  background: #fafafa;
-  border-radius: 9px;
-  min-height: 39px;
-  font-size: 12px;
-  font-weight: 800;
+  border:1px solid #d3d6da; background:#fafafa;
+  border-radius:9px; min-height:39px; font-size:12px; font-weight:800;
 }
-
-.remoteBottom {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  margin-top: 9px;
-}
-
+.remoteBottom { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:9px; }
 .bigButton {
-  border: 0;
-  border-radius: 11px;
-  padding: 12px 6px;
-  font-size: 14px;
-  font-weight: 850;
-  background: #24282d;
-  color: white;
+  border:0; border-radius:11px; padding:12px 6px;
+  font-size:14px; font-weight:850; background:#24282d; color:white;
 }
+.bigButton.secondary { background:#e7e9ec; color:#24282d; }
+.note { text-align:center; color:#777; font-size:10px; line-height:1.45; margin-top:6px; }
 
-.bigButton.secondary {
-  background: #e7e9ec;
-  color: #24282d;
+@media(max-width:390px){
+  #app{padding-left:9px;padding-right:9px}
+  .card{padding:11px;margin-bottom:7px}
+  #focusTime{font-size:43px}
+  .remoteLayout{gap:7px}
+  .controlButton{min-height:37px}
+  .expressionButton{min-height:35px;font-size:11px}
 }
-
-.note {
-  text-align: center;
-  color: #777;
-  font-size: 10px;
-  line-height: 1.45;
-  margin-top: 6px;
-}
-
-@media (max-width: 390px) {
-
-  #app {
-    padding-left: 9px;
-    padding-right: 9px;
-  }
-
-  .card {
-    padding: 11px;
-    margin-bottom: 7px;
-  }
-
-  #focusTime {
-    font-size: 43px;
-  }
-
-  .remoteLayout {
-    gap: 7px;
-  }
-
-  .controlButton {
-    min-height: 37px;
-  }
-
-  .expressionButton {
-    min-height: 35px;
-    font-size: 11px;
-  }
-}
-
 </style>
 </head>
 
 <body>
-
 <div id="app">
 
   <div class="topbar">
-
     <div>
       <h1>👁 Focus Eye</h1>
       <div id="status">未接続</div>
     </div>
-
-    <button id="connectButton">
-      BLE接続
-    </button>
-
+    <button id="connectButton">BLE接続</button>
   </div>
 
   <div class="tabs">
-
-    <button
-      class="tab active"
-      data-page="focusPage">
-      集中
-    </button>
-
-    <button
-      class="tab"
-      data-page="remotePage">
-      リモコン
-    </button>
-
+    <button class="tab active" data-page="focusPage">集中</button>
+    <button class="tab" data-page="historyPage">記録</button>
+    <button class="tab" data-page="remotePage">リモコン</button>
   </div>
 
-
-  <!-- ==========================================
-       Focus page
-  =========================================== -->
-
-  <section
-    id="focusPage"
-    class="page active">
+  <section id="focusPage" class="page active">
 
     <div class="card">
-
       <div class="presenceRow">
-
-        <div
-          id="presenceDot"
-          class="dot">
-        </div>
-
+        <div id="presenceDot" class="dot"></div>
         <div>
-          <div id="presenceText">
-            待機中
-          </div>
-
-          <div
-            id="stageText"
-            class="sub">
-            目は休憩中
-          </div>
+          <div id="presenceText">待機中</div>
+          <div id="stageText" class="sub">目は休憩中</div>
         </div>
-
       </div>
-
       <div class="stageBar">
         <div id="stage1" class="stage"></div>
         <div id="stage2" class="stage"></div>
         <div id="stage3" class="stage"></div>
         <div id="stage4" class="stage"></div>
       </div>
-
     </div>
-
 
     <div class="card">
-
-      <div class="focusTimerLabel">
-        今回の集中時間
-      </div>
-
-      <div id="focusTime">
-        00:00
-      </div>
-
+      <div class="focusTimerLabel">今回の集中時間</div>
+      <div id="focusTime">00:00</div>
     </div>
-
 
     <div class="card grid2">
-
       <div class="metric">
-        <div class="metricTitle">
-          累計
-        </div>
-        <div
-          id="totalTime"
-          class="metricValue">
-          00:00
-        </div>
+        <div class="metricTitle">今日の累計</div>
+        <div id="todayTotal" class="metricValue">00:00</div>
       </div>
-
       <div class="metric">
-        <div class="metricTitle">
-          前回
-        </div>
-        <div
-          id="lastTime"
-          class="metricValue">
-          00:00
-        </div>
+        <div class="metricTitle">今日の回数</div>
+        <div id="todayCount" class="metricValue">0 回</div>
       </div>
-
       <div class="metric">
-        <div class="metricTitle">
-          現在距離
-        </div>
-        <div
-          id="distance"
-          class="metricValue">
-          --- cm
-        </div>
+        <div class="metricTitle">現在距離</div>
+        <div id="distance" class="metricValue">--- cm</div>
       </div>
-
       <div class="metric">
-        <div class="metricTitle">
-          判定距離
-        </div>
-        <div
-          id="thresholdReadout"
-          class="metricValue">
-          80 cm
-        </div>
+        <div class="metricTitle">判定距離</div>
+        <div id="thresholdReadout" class="metricValue">80 cm</div>
       </div>
-
     </div>
 
-
     <div class="card">
-
       <div class="powerRow">
-
         <div>
-          <div class="powerTitle">
-            省エネモード
-          </div>
-
-          <div class="sub">
-            目の移動・自動まばたきを停止
-          </div>
+          <div class="powerTitle">省エネモード</div>
+          <div class="sub">目の移動・自動まばたきを停止</div>
         </div>
-
         <label class="switch">
-
-          <input
-            id="powerSaveToggle"
-            type="checkbox">
-
+          <input id="powerSaveToggle" type="checkbox">
           <span class="slider"></span>
-
         </label>
-
       </div>
-
     </div>
 
-
     <div class="card">
-
-      <div class="focusTimerLabel">
-        在席判定距離
-      </div>
-
+      <div class="focusTimerLabel">在席判定距離</div>
       <div class="rangeRow">
-
-        <input
-          id="distanceSetting"
-          type="range"
-          min="30"
-          max="150"
-          step="5"
-          value="80">
-
-        <div id="distanceSettingValue">
-          80cm
-        </div>
-
+        <input id="distanceSetting" type="range" min="30" max="150" step="5" value="80">
+        <div id="distanceSettingValue">80cm</div>
       </div>
-
     </div>
 
     <div class="note">
       デモ用：20秒 / 40秒 / 60秒で目の態度が変化。<br>
-      計測開始3秒、離席確定5秒。
+      3秒で着席確定、5秒で離席確定。
     </div>
 
   </section>
 
-
-  <!-- ==========================================
-       Remote page
-  =========================================== -->
-
-  <section
-    id="remotePage"
-    class="page">
+  <section id="historyPage" class="page">
 
     <div class="card">
+      <div class="historyTitle">今日</div>
+      <div class="summaryHero">
+        <div class="heroBox">
+          <div class="heroLabel">累計集中時間</div>
+          <div id="historyTotal" class="heroValue">00:00</div>
+        </div>
+        <div class="heroBox">
+          <div class="heroLabel">最長</div>
+          <div id="historyLongest" class="heroValue">00:00</div>
+        </div>
+      </div>
+    </div>
 
+    <div class="card">
+      <div class="historyTitle">セッション履歴</div>
+      <div id="sessionList" class="sessionList"></div>
+    </div>
+
+    <div class="card">
+      <button id="clearHistory" class="dangerButton">今日の記録をリセット</button>
+    </div>
+
+    <div class="note">
+      記録はこのiPhone/ブラウザ内に保存されます。<br>
+      M5Atomの電源を切っても今日の履歴は残ります。
+    </div>
+
+  </section>
+
+  <section id="remotePage" class="page">
+
+    <div class="card">
       <div class="remoteLayout">
 
         <div>
-
-          <div
-            id="gazePad"
-            class="gazePad">
-
-            <div
-              id="gazeCursor"
-              class="cursor">
-            </div>
-
+          <div id="gazePad" class="gazePad">
+            <div id="gazeCursor" class="cursor"></div>
           </div>
-
-          <div class="note">
-            指で視線を操作
-          </div>
-
+          <div class="note">指で視線を操作</div>
         </div>
-
 
         <div class="controlStack">
-
           <div class="expressionGrid">
-
-            <button
-              class="expressionButton"
-              data-command="MODE:NORMAL">
-              通常
-            </button>
-
-            <button
-              class="expressionButton"
-              data-command="MODE:HALF">
-              半眼
-            </button>
-
-            <button
-              class="expressionButton"
-              data-command="MODE:JITO">
-              ジト目
-            </button>
-
-            <button
-              class="expressionButton"
-              data-command="MODE:SURPRISE">
-              驚き
-            </button>
-
+            <button class="expressionButton" data-command="MODE:NORMAL">通常</button>
+            <button class="expressionButton" data-command="MODE:HALF">半眼</button>
+            <button class="expressionButton" data-command="MODE:JITO">ジト目</button>
+            <button class="expressionButton" data-command="MODE:SURPRISE">驚き</button>
           </div>
-
-          <button
-            id="blinkButton"
-            class="controlButton">
-            まばたき
-          </button>
-
-          <button
-            id="centerButton"
-            class="controlButton">
-            中央
-          </button>
-
+          <button id="blinkButton" class="controlButton">まばたき</button>
+          <button id="centerButton" class="controlButton">中央</button>
         </div>
 
       </div>
 
-
       <div class="remoteBottom">
-
-        <button
-          id="remotePowerOff"
-          class="bigButton">
-          動作停止
-        </button>
-
-        <button
-          id="remotePowerOn"
-          class="bigButton secondary">
-          動作再開
-        </button>
-
+        <button id="remotePowerOff" class="bigButton">動作停止</button>
+        <button id="remotePowerOn" class="bigButton secondary">動作再開</button>
       </div>
-
     </div>
 
     <div class="note">
@@ -718,746 +306,342 @@ input[type="range"] {
 
 </div>
 
-
 <script>
+const SERVICE_UUID="7d7a0001-7d7a-4a01-9000-123456789abc";
+const COMMAND_UUID="7d7a0002-7d7a-4a01-9000-123456789abc";
+const DATA_UUID="7d7a0003-7d7a-4a01-9000-123456789abc";
 
-const SERVICE_UUID =
-"7d7a0001-7d7a-4a01-9000-123456789abc";
+let device=null;
+let commandCharacteristic=null;
+let dataCharacteristic=null;
 
-const COMMAND_UUID =
-"7d7a0002-7d7a-4a01-9000-123456789abc";
+let previousPresence=false;
+let currentSessionStartWallClock=null;
+let currentSessionSeconds=0;
 
-const DATA_UUID =
-"7d7a0003-7d7a-4a01-9000-123456789abc";
+const connectButton=document.getElementById("connectButton");
+const statusEl=document.getElementById("status");
+const presenceDot=document.getElementById("presenceDot");
+const presenceText=document.getElementById("presenceText");
+const stageText=document.getElementById("stageText");
+const focusTime=document.getElementById("focusTime");
+const todayTotal=document.getElementById("todayTotal");
+const todayCount=document.getElementById("todayCount");
+const distanceEl=document.getElementById("distance");
+const thresholdReadout=document.getElementById("thresholdReadout");
+const powerSaveToggle=document.getElementById("powerSaveToggle");
+const distanceSetting=document.getElementById("distanceSetting");
+const distanceSettingValue=document.getElementById("distanceSettingValue");
 
-
-let device = null;
-let commandCharacteristic = null;
-let dataCharacteristic = null;
-
-let latestPowerSave = false;
-
-
-// ==========================================
-// Elements
-// ==========================================
-
-const connectButton =
-  document.getElementById("connectButton");
-
-const statusEl =
-  document.getElementById("status");
-
-const presenceDot =
-  document.getElementById("presenceDot");
-
-const presenceText =
-  document.getElementById("presenceText");
-
-const stageText =
-  document.getElementById("stageText");
-
-const focusTime =
-  document.getElementById("focusTime");
-
-const totalTime =
-  document.getElementById("totalTime");
-
-const lastTime =
-  document.getElementById("lastTime");
-
-const distanceEl =
-  document.getElementById("distance");
-
-const thresholdReadout =
-  document.getElementById("thresholdReadout");
-
-const powerSaveToggle =
-  document.getElementById("powerSaveToggle");
-
-const distanceSetting =
-  document.getElementById("distanceSetting");
-
-const distanceSettingValue =
-  document.getElementById("distanceSettingValue");
-
-
-// ==========================================
-// Tabs
-// ==========================================
-
-document
-  .querySelectorAll(".tab")
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        document
-          .querySelectorAll(".tab")
-          .forEach(b =>
-            b.classList.remove("active")
-          );
-
-        document
-          .querySelectorAll(".page")
-          .forEach(page =>
-            page.classList.remove("active")
-          );
-
-        button.classList.add("active");
-
-        document
-          .getElementById(
-            button.dataset.page
-          )
-          .classList.add("active");
-
-      }
-    );
-
-  });
-
-
-// ==========================================
-// Helpers
-// ==========================================
-
-function formatTime(totalSeconds) {
-
-  const value =
-    Math.max(
-      0,
-      Number(totalSeconds) || 0
-    );
-
-  const hours =
-    Math.floor(value / 3600);
-
-  const minutes =
-    Math.floor(
-      (value % 3600) / 60
-    );
-
-  const seconds =
-    Math.floor(value % 60);
-
-  if (hours > 0) {
-
-    return (
-      String(hours).padStart(2, "0")
-      + ":" +
-      String(minutes).padStart(2, "0")
-      + ":" +
-      String(seconds).padStart(2, "0")
-    );
-  }
-
-  return (
-    String(minutes).padStart(2, "0")
-    + ":" +
-    String(seconds).padStart(2, "0")
-  );
+function todayKey(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `focusEye:${y}-${m}-${day}`;
 }
 
+function loadDay(){
+  try{
+    return JSON.parse(localStorage.getItem(todayKey())) || {sessions:[]};
+  }catch(e){
+    return {sessions:[]};
+  }
+}
 
-function parseTelemetry(message) {
+function saveDay(data){
+  localStorage.setItem(todayKey(),JSON.stringify(data));
+}
 
-  const data = {};
+function formatTime(totalSeconds){
+  const value=Math.max(0,Number(totalSeconds)||0);
+  const h=Math.floor(value/3600);
+  const m=Math.floor((value%3600)/60);
+  const s=Math.floor(value%60);
+  if(h>0){
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
 
-  message
-    .split(",")
-    .forEach(part => {
+function timeText(timestamp){
+  const d=new Date(timestamp);
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
 
-      const index =
-        part.indexOf(":");
+function renderHistory(){
+  const data=loadDay();
+  const sessions=data.sessions || [];
+  const total=sessions.reduce((sum,s)=>sum+(Number(s.duration)||0),0);
+  const longest=sessions.reduce((max,s)=>Math.max(max,Number(s.duration)||0),0);
 
-      if (index < 0) return;
+  document.getElementById("historyTotal").textContent=formatTime(total);
+  document.getElementById("historyLongest").textContent=formatTime(longest);
 
-      const key =
-        part.substring(0, index);
+  todayTotal.textContent=formatTime(total + (previousPresence ? currentSessionSeconds : 0));
+  todayCount.textContent=(sessions.length + (previousPresence ? 1 : 0))+" 回";
 
-      const value =
-        part.substring(index + 1);
+  const list=document.getElementById("sessionList");
+  list.innerHTML="";
 
-      data[key] = value;
+  if(sessions.length===0){
+    const empty=document.createElement("div");
+    empty.className="empty";
+    empty.textContent="まだ記録がありません";
+    list.appendChild(empty);
+    return;
+  }
 
-    });
+  [...sessions].reverse().forEach((s,index)=>{
+    const row=document.createElement("div");
+    row.className="sessionRow";
 
+    const left=document.createElement("div");
+    const t=document.createElement("div");
+    t.className="sessionTime";
+    t.textContent=`${timeText(s.start)} - ${timeText(s.end)}`;
+
+    const meta=document.createElement("div");
+    meta.className="sessionMeta";
+    meta.textContent=`セッション ${sessions.length-index}`;
+
+    left.appendChild(t);
+    left.appendChild(meta);
+
+    const duration=document.createElement("div");
+    duration.className="sessionDuration";
+    duration.textContent=formatTime(s.duration);
+
+    row.appendChild(left);
+    row.appendChild(duration);
+    list.appendChild(row);
+  });
+}
+
+function recordCompletedSession(durationSeconds){
+  const duration=Math.max(0,Math.floor(Number(durationSeconds)||0));
+  if(duration<1) return;
+
+  const end=Date.now();
+  const start=currentSessionStartWallClock || (end-duration*1000);
+
+  const data=loadDay();
+  data.sessions=data.sessions || [];
+  data.sessions.push({
+    start:start,
+    end:end,
+    duration:duration
+  });
+
+  if(data.sessions.length>100){
+    data.sessions=data.sessions.slice(-100);
+  }
+
+  saveDay(data);
+  renderHistory();
+}
+
+document.querySelectorAll(".tab").forEach(button=>{
+  button.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    button.classList.add("active");
+    document.getElementById(button.dataset.page).classList.add("active");
+    if(button.dataset.page==="historyPage") renderHistory();
+  });
+});
+
+function parseTelemetry(message){
+  const data={};
+  message.split(",").forEach(part=>{
+    const i=part.indexOf(":");
+    if(i<0)return;
+    data[part.substring(0,i)]=part.substring(i+1);
+  });
   return data;
 }
 
-
-// ==========================================
-// Stage UI
-// ==========================================
-
-function renderStage(stage) {
-
-  const stageNumber =
-    Number(stage) || 0;
-
-  const labels = {
-    0: "目は休憩中",
-    1: "着席を確認",
-    2: "集中を静かに見守り中",
-    3: "ちょっと長いぞ",
-    4: "そろそろ休憩どう？"
+function renderStage(stage){
+  const n=Number(stage)||0;
+  const labels={
+    0:"目は休憩中",
+    1:"着席を確認",
+    2:"集中を静かに見守り中",
+    3:"ちょっと長いぞ",
+    4:"そろそろ休憩どう？"
   };
-
-  stageText.textContent =
-    labels[stageNumber] ||
-    "状態確認中";
-
-  for (
-    let i = 1;
-    i <= 4;
-    i++
-  ) {
-
-    document
-      .getElementById(
-        "stage" + i
-      )
-      .classList
-      .toggle(
-        "on",
-        stageNumber >= i
-      );
+  stageText.textContent=labels[n]||"状態確認中";
+  for(let i=1;i<=4;i++){
+    document.getElementById("stage"+i).classList.toggle("on",n>=i);
   }
 }
 
+function handleTelemetry(event){
+  const data=parseTelemetry(new TextDecoder().decode(event.target.value));
 
-// ==========================================
-// Telemetry
-// ==========================================
+  if(data.D!==undefined){
+    const mm=Number(data.D);
+    if(Number.isFinite(mm)) distanceEl.textContent=Math.round(mm/10)+" cm";
+  }
 
-function handleTelemetry(event) {
+  if(data.T!==undefined){
+    currentSessionSeconds=Number(data.T)||0;
+    focusTime.textContent=formatTime(currentSessionSeconds);
+  }
 
-  const message =
-    new TextDecoder().decode(
-      event.target.value
-    );
+  if(data.P!==undefined){
+    const present=data.P==="1";
 
-  const data =
-    parseTelemetry(message);
+    presenceDot.classList.toggle("on",present);
+    presenceText.textContent=present?"集中中":"離席中";
 
-
-  if (data.D !== undefined) {
-
-    const mm =
-      Number(data.D);
-
-    if (Number.isFinite(mm)) {
-      distanceEl.textContent =
-        Math.round(mm / 10)
-        + " cm";
+    if(present && !previousPresence){
+      currentSessionStartWallClock=Date.now()-currentSessionSeconds*1000;
     }
+
+    if(!present && previousPresence){
+      recordCompletedSession(currentSessionSeconds);
+      currentSessionStartWallClock=null;
+      currentSessionSeconds=0;
+    }
+
+    previousPresence=present;
   }
 
+  if(data.S!==undefined) renderStage(data.S);
 
-  if (data.P !== undefined) {
-
-    const present =
-      data.P === "1";
-
-    presenceDot
-      .classList
-      .toggle(
-        "on",
-        present
-      );
-
-    presenceText.textContent =
-      present
-        ? "集中中"
-        : "離席中";
+  if(data.PS!==undefined){
+    powerSaveToggle.checked=data.PS==="1";
   }
 
-
-  if (data.T !== undefined) {
-    focusTime.textContent =
-      formatTime(data.T);
+  if(data.TH!==undefined){
+    const cm=Number(data.TH);
+    thresholdReadout.textContent=cm+" cm";
+    distanceSetting.value=cm;
+    distanceSettingValue.textContent=cm+"cm";
   }
 
-
-  if (data.A !== undefined) {
-    totalTime.textContent =
-      formatTime(data.A);
-  }
-
-
-  if (data.L !== undefined) {
-    lastTime.textContent =
-      formatTime(data.L);
-  }
-
-
-  if (data.S !== undefined) {
-    renderStage(data.S);
-  }
-
-
-  if (data.PS !== undefined) {
-
-    latestPowerSave =
-      data.PS === "1";
-
-    powerSaveToggle.checked =
-      latestPowerSave;
-  }
-
-
-  if (data.TH !== undefined) {
-
-    const cm =
-      Number(data.TH);
-
-    thresholdReadout.textContent =
-      cm + " cm";
-
-    distanceSetting.value =
-      cm;
-
-    distanceSettingValue.textContent =
-      cm + "cm";
-  }
+  renderHistory();
 }
 
+async function connectBLE(){
+  try{
+    statusEl.textContent="検索中…";
 
-// ==========================================
-// BLE
-// ==========================================
+    device=await navigator.bluetooth.requestDevice({
+      filters:[{services:[SERVICE_UUID]}]
+    });
 
-async function connectBLE() {
+    device.addEventListener("gattserverdisconnected",()=>{
+      statusEl.textContent="切断";
+      connectButton.textContent="BLE接続";
+      connectButton.classList.remove("connected");
+      commandCharacteristic=null;
+      dataCharacteristic=null;
+    });
 
-  try {
+    statusEl.textContent="接続中…";
 
-    statusEl.textContent =
-      "検索中…";
+    const server=await device.gatt.connect();
+    const service=await server.getPrimaryService(SERVICE_UUID);
 
-    /*
-      Search by the advertised service instead of the device name.
-      This is more tolerant of cached device names in Bluefy/iOS.
-    */
+    commandCharacteristic=await service.getCharacteristic(COMMAND_UUID);
+    dataCharacteristic=await service.getCharacteristic(DATA_UUID);
 
-    device =
-      await navigator.bluetooth.requestDevice({
+    dataCharacteristic.addEventListener("characteristicvaluechanged",handleTelemetry);
+    await dataCharacteristic.startNotifications();
 
-        filters: [
-          {
-            services: [
-              SERVICE_UUID
-            ]
-          }
-        ]
-
-      });
-
-
-    device.addEventListener(
-      "gattserverdisconnected",
-      () => {
-
-        statusEl.textContent =
-          "切断";
-
-        connectButton.textContent =
-          "BLE接続";
-
-        connectButton
-          .classList
-          .remove(
-            "connected"
-          );
-
-        commandCharacteristic =
-          null;
-
-        dataCharacteristic =
-          null;
-
-      }
-    );
-
-
-    statusEl.textContent =
-      "接続中…";
-
-
-    const server =
-      await device.gatt.connect();
-
-
-    const service =
-      await server.getPrimaryService(
-        SERVICE_UUID
-      );
-
-
-    commandCharacteristic =
-      await service.getCharacteristic(
-        COMMAND_UUID
-      );
-
-
-    dataCharacteristic =
-      await service.getCharacteristic(
-        DATA_UUID
-      );
-
-
-    dataCharacteristic.addEventListener(
-      "characteristicvaluechanged",
-      handleTelemetry
-    );
-
-
-    await dataCharacteristic
-      .startNotifications();
-
-
-    statusEl.textContent =
-      "接続済み";
-
-    connectButton.textContent =
-      "接続済";
-
-    connectButton
-      .classList
-      .add(
-        "connected"
-      );
-
-  }
-
-  catch(error) {
-
+    statusEl.textContent="接続済み";
+    connectButton.textContent="接続済";
+    connectButton.classList.add("connected");
+  }catch(error){
     console.error(error);
-
-    statusEl.textContent =
-      "接続失敗: "
-      + (
-        error.message ||
-        "不明なエラー"
-      );
-
+    statusEl.textContent="接続失敗: "+(error.message||"不明なエラー");
   }
 }
 
-
-async function sendCommand(command) {
-
-  if (!commandCharacteristic) {
-
-    statusEl.textContent =
-      "先にBLE接続してください";
-
+async function sendCommand(command){
+  if(!commandCharacteristic){
+    statusEl.textContent="先にBLE接続してください";
     return;
   }
 
+  try{
+    const payload=new TextEncoder().encode(command);
 
-  try {
-
-    const payload =
-      new TextEncoder()
-        .encode(command);
-
-
-    if (
-      commandCharacteristic
-        .writeValueWithoutResponse
-    ) {
-
-      await commandCharacteristic
-        .writeValueWithoutResponse(
-          payload
-        );
-
-    } else {
-
-      await commandCharacteristic
-        .writeValue(
-          payload
-        );
-
+    if(commandCharacteristic.writeValueWithoutResponse){
+      await commandCharacteristic.writeValueWithoutResponse(payload);
+    }else{
+      await commandCharacteristic.writeValue(payload);
     }
-
-  }
-
-  catch(error) {
-
+  }catch(error){
     console.error(error);
-
-    statusEl.textContent =
-      "送信失敗";
-
+    statusEl.textContent="送信失敗";
   }
 }
 
+connectButton.addEventListener("click",connectBLE);
 
-connectButton
-  .addEventListener(
-    "click",
-    connectBLE
-  );
+powerSaveToggle.addEventListener("change",()=>{
+  sendCommand(powerSaveToggle.checked ? "POWER:ON" : "POWER:OFF");
+});
 
+distanceSetting.addEventListener("input",()=>{
+  distanceSettingValue.textContent=distanceSetting.value+"cm";
+});
 
-// ==========================================
-// Focus settings
-// ==========================================
+distanceSetting.addEventListener("change",()=>{
+  sendCommand("DIST:"+distanceSetting.value);
+});
 
-powerSaveToggle
-  .addEventListener(
-    "change",
-    () => {
+document.querySelectorAll(".expressionButton").forEach(button=>{
+  button.addEventListener("click",()=>sendCommand(button.dataset.command));
+});
 
-      sendCommand(
-        powerSaveToggle.checked
-          ? "POWER:ON"
-          : "POWER:OFF"
-      );
+document.getElementById("blinkButton").addEventListener("click",()=>sendCommand("BLINK"));
+document.getElementById("centerButton").addEventListener("click",()=>sendCommand("CENTER"));
+document.getElementById("remotePowerOff").addEventListener("click",()=>sendCommand("POWER:ON"));
+document.getElementById("remotePowerOn").addEventListener("click",()=>sendCommand("POWER:OFF"));
 
-    }
-  );
-
-
-distanceSetting
-  .addEventListener(
-    "input",
-    () => {
-
-      distanceSettingValue.textContent =
-        distanceSetting.value
-        + "cm";
-
-    }
-  );
-
-
-distanceSetting
-  .addEventListener(
-    "change",
-    () => {
-
-      sendCommand(
-        "DIST:"
-        + distanceSetting.value
-      );
-
-    }
-  );
-
-
-// ==========================================
-// Remote buttons
-// ==========================================
-
-document
-  .querySelectorAll(
-    ".expressionButton"
-  )
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        sendCommand(
-          button.dataset.command
-        );
-
-      }
-    );
-
-  });
-
-
-document
-  .getElementById(
-    "blinkButton"
-  )
-  .addEventListener(
-    "click",
-    () =>
-      sendCommand(
-        "BLINK"
-      )
-  );
-
-
-document
-  .getElementById(
-    "centerButton"
-  )
-  .addEventListener(
-    "click",
-    () =>
-      sendCommand(
-        "CENTER"
-      )
-  );
-
-
-document
-  .getElementById(
-    "remotePowerOff"
-  )
-  .addEventListener(
-    "click",
-    () =>
-      sendCommand(
-        "POWER:ON"
-      )
-  );
-
-
-document
-  .getElementById(
-    "remotePowerOn"
-  )
-  .addEventListener(
-    "click",
-    () =>
-      sendCommand(
-        "POWER:OFF"
-      )
-  );
-
-
-// ==========================================
-// Gaze pad
-// ==========================================
-
-const gazePad =
-  document.getElementById(
-    "gazePad"
-  );
-
-const gazeCursor =
-  document.getElementById(
-    "gazeCursor"
-  );
-
-
-let lastSendAt =
-  0;
-
-
-function handlePad(event) {
-
-  if (!event.touches?.length) {
-    return;
+document.getElementById("clearHistory").addEventListener("click",()=>{
+  if(confirm("今日の集中記録を削除しますか？")){
+    localStorage.removeItem(todayKey());
+    renderHistory();
   }
+});
 
+/* Gaze pad */
+const gazePad=document.getElementById("gazePad");
+const gazeCursor=document.getElementById("gazeCursor");
+let lastSendAt=0;
 
+function handlePad(event){
+  if(!event.touches?.length)return;
   event.preventDefault();
 
+  const now=performance.now();
+  if(now-lastSendAt<100)return;
+  lastSendAt=now;
 
-  const now =
-    performance.now();
+  const rect=gazePad.getBoundingClientRect();
+  const touch=event.touches[0];
 
+  let px=Math.max(0,Math.min(rect.width,touch.clientX-rect.left));
+  let py=Math.max(0,Math.min(rect.height,touch.clientY-rect.top));
 
-  if (
-    now - lastSendAt <
-    100
-  ) {
-    return;
-  }
+  gazeCursor.style.left=px+"px";
+  gazeCursor.style.top=py+"px";
 
+  const x=Math.round(30+(px/rect.width)*120);
+  const y=Math.round(30+(py/rect.height)*120);
 
-  lastSendAt =
-    now;
-
-
-  const rect =
-    gazePad
-      .getBoundingClientRect();
-
-
-  const touch =
-    event.touches[0];
-
-
-  let px =
-    touch.clientX -
-    rect.left;
-
-
-  let py =
-    touch.clientY -
-    rect.top;
-
-
-  px =
-    Math.max(
-      0,
-      Math.min(
-        rect.width,
-        px
-      )
-    );
-
-
-  py =
-    Math.max(
-      0,
-      Math.min(
-        rect.height,
-        py
-      )
-    );
-
-
-  gazeCursor.style.left =
-    px + "px";
-
-
-  gazeCursor.style.top =
-    py + "px";
-
-
-  const x =
-    Math.round(
-      30 +
-      (px / rect.width)
-      * 120
-    );
-
-
-  const y =
-    Math.round(
-      30 +
-      (py / rect.height)
-      * 120
-    );
-
-
-  sendCommand(
-    "XY:"
-    + x
-    + ","
-    + y
-  );
+  sendCommand(`XY:${x},${y}`);
 }
 
+gazePad.addEventListener("touchstart",handlePad,{passive:false});
+gazePad.addEventListener("touchmove",handlePad,{passive:false});
 
-gazePad
-  .addEventListener(
-    "touchstart",
-    handlePad,
-    { passive: false }
-  );
-
-
-gazePad
-  .addEventListener(
-    "touchmove",
-    handlePad,
-    { passive: false }
-  );
-
+renderHistory();
 </script>
 </body>
 </html>
