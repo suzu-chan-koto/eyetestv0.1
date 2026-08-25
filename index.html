@@ -40,6 +40,64 @@ h1{margin:0;font-size:22px}
 .rangeRow{display:grid;grid-template-columns:1fr 58px;gap:10px;align-items:center}
 input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14px;font-weight:800}
 
+
+.modeButtons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-top:9px;
+}
+.modeButton{
+  border:1px solid #d3d6da;
+  background:#f7f8f9;
+  border-radius:10px;
+  padding:10px 6px;
+  font-size:12px;
+  font-weight:850;
+}
+.modeButton.active{
+  background:#25292e;
+  color:white;
+  border-color:#25292e;
+}
+.settingDivider{
+  height:1px;
+  background:#eceef0;
+  margin:12px 0;
+}
+.weekChart{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  align-items:end;
+  gap:5px;
+  height:120px;
+  margin-top:10px;
+}
+.dayCol{
+  height:100%;
+  display:grid;
+  grid-template-rows:1fr auto;
+  gap:5px;
+  align-items:end;
+  text-align:center;
+}
+.barTrack{
+  height:100%;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.bar{
+  width:70%;
+  min-height:3px;
+  background:#30343a;
+  border-radius:5px 5px 2px 2px;
+}
+.dayLabel{
+  font-size:9px;
+  color:#777;
+}
+
 /* history */
 .summaryHero{display:grid;grid-template-columns:1.2fr .8fr;gap:8px}
 .heroBox{background:#f4f5f6;border-radius:12px;padding:13px}
@@ -105,10 +163,41 @@ input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14
     </div>
 
     <div class="card">
-      <div class="powerRow">
-        <div><div class="powerTitle">省エネモード</div><div class="sub">目の移動・自動まばたきを停止</div></div>
-        <label class="switch"><input id="powerSaveToggle" type="checkbox"><span class="slider"></span></label>
+
+      <div class="powerTitle">時間設定</div>
+      <div class="sub" id="timingDescription">デモ：20秒 / 40秒 / 60秒</div>
+
+      <div class="modeButtons">
+        <button id="demoModeButton" class="modeButton active">デモ</button>
+        <button id="realModeButton" class="modeButton">本番</button>
       </div>
+
+      <div class="settingDivider"></div>
+
+      <div class="powerRow">
+        <div>
+          <div class="powerTitle">自動まばたき</div>
+          <div class="sub">約14〜26秒に1回</div>
+        </div>
+        <label class="switch">
+          <input id="autoBlinkToggle" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settingDivider"></div>
+
+      <div class="powerRow">
+        <div>
+          <div class="powerTitle">省エネモード</div>
+          <div class="sub">目の移動・自動まばたきを停止</div>
+        </div>
+        <label class="switch">
+          <input id="powerSaveToggle" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+
     </div>
 
     <div class="card">
@@ -119,7 +208,7 @@ input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14
       </div>
     </div>
 
-    <div class="note">デモ用：20秒 / 40秒 / 60秒で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。</div>
+    <div class="note" id="modeNote">デモ：20秒 / 40秒 / 60秒で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。</div>
   </section>
 
   <section id="historyPage" class="page">
@@ -129,6 +218,11 @@ input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14
         <div class="heroBox"><div class="heroLabel">累計集中時間</div><div id="historyTotal" class="heroValue">00:00</div></div>
         <div class="heroBox"><div class="heroLabel">最長</div><div id="historyLongest" class="heroValue">00:00</div></div>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="historyTitle">直近7日</div>
+      <div id="weekChart" class="weekChart"></div>
     </div>
 
     <div class="card">
@@ -183,9 +277,11 @@ let currentSessionSeconds=0;
 let currentSessionStartWallClock=null;
 let lastSeenCompletedSeconds=0;
 let resetArmedUntil=0;
+let timingMode="DEMO";
+let autoBlinkEnabled=true;
 
 const $=id=>document.getElementById(id);
-const connectButton=$("connectButton"),statusEl=$("status"),presenceDot=$("presenceDot"),presenceText=$("presenceText"),stageText=$("stageText"),focusTime=$("focusTime"),todayTotal=$("todayTotal"),todayCount=$("todayCount"),distanceEl=$("distance"),thresholdReadout=$("thresholdReadout"),powerSaveToggle=$("powerSaveToggle"),distanceSetting=$("distanceSetting"),distanceSettingValue=$("distanceSettingValue");
+const connectButton=$("connectButton"),statusEl=$("status"),presenceDot=$("presenceDot"),presenceText=$("presenceText"),stageText=$("stageText"),focusTime=$("focusTime"),todayTotal=$("todayTotal"),todayCount=$("todayCount"),distanceEl=$("distance"),thresholdReadout=$("thresholdReadout"),powerSaveToggle=$("powerSaveToggle"),autoBlinkToggle=$("autoBlinkToggle"),distanceSetting=$("distanceSetting"),distanceSettingValue=$("distanceSettingValue"),demoModeButton=$("demoModeButton"),realModeButton=$("realModeButton"),timingDescription=$("timingDescription"),modeNote=$("modeNote");
 
 function todayKey(){
   const d=new Date();
@@ -222,6 +318,85 @@ function timeText(ts){
   return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 
+
+function keyForDate(d){
+  return `focusEye:${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function loadDayByDate(d){
+  try{
+    const raw=localStorage.getItem(keyForDate(d));
+    if(!raw)return {sessions:[]};
+    const obj=JSON.parse(raw);
+    return {sessions:Array.isArray(obj.sessions)?obj.sessions:[]};
+  }catch(e){
+    return {sessions:[]};
+  }
+}
+
+function renderWeekChart(){
+  const chart=$("weekChart");
+  if(!chart)return;
+
+  const days=[];
+  let maxTotal=1;
+
+  for(let i=6;i>=0;i--){
+    const d=new Date();
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate()-i);
+
+    const data=loadDayByDate(d);
+    let total=(data.sessions||[]).reduce((sum,s)=>sum+(Number(s.duration)||0),0);
+
+    if(i===0 && previousPresence){
+      total+=currentSessionSeconds;
+    }
+
+    maxTotal=Math.max(maxTotal,total);
+    days.push({d,total});
+  }
+
+  chart.innerHTML="";
+
+  days.forEach(({d,total})=>{
+    const col=document.createElement("div");
+    col.className="dayCol";
+
+    const track=document.createElement("div");
+    track.className="barTrack";
+
+    const bar=document.createElement("div");
+    bar.className="bar";
+    bar.style.height=Math.max(3,Math.round((total/maxTotal)*100))+"%";
+    bar.title=formatTime(total);
+
+    const label=document.createElement("div");
+    label.className="dayLabel";
+    label.textContent=`${d.getMonth()+1}/${d.getDate()}`;
+
+    track.appendChild(bar);
+    col.appendChild(track);
+    col.appendChild(label);
+    chart.appendChild(col);
+  });
+}
+
+function renderTimingUI(){
+  const isDemo=timingMode==="DEMO";
+
+  demoModeButton.classList.toggle("active",isDemo);
+  realModeButton.classList.toggle("active",!isDemo);
+
+  timingDescription.textContent=isDemo
+    ? "デモ：20秒 / 40秒 / 60秒"
+    : "本番：5分 / 25分 / 45分";
+
+  modeNote.innerHTML=isDemo
+    ? "デモ：20秒 / 40秒 / 60秒で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。"
+    : "本番：5分 / 25分 / 45分で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。";
+}
+
 function renderHistory(){
   const data=loadDay(),sessions=data.sessions;
   const savedTotal=sessions.reduce((a,s)=>a+(Number(s.duration)||0),0);
@@ -237,6 +412,7 @@ function renderHistory(){
   list.innerHTML="";
   if(!sessions.length){
     list.innerHTML='<div class="empty">まだ完了したセッションはありません</div>';
+    renderWeekChart();
     return;
   }
 
@@ -246,6 +422,8 @@ function renderHistory(){
     row.innerHTML=`<div><div class="sessionTime">${timeText(s.start)} - ${timeText(s.end)}</div><div class="sessionMeta">セッション ${sessions.length-idx}</div></div><div class="sessionDuration">${formatTime(s.duration)}</div>`;
     list.appendChild(row);
   });
+
+  renderWeekChart();
 }
 
 function recordCompletedSession(durationSeconds){
@@ -290,10 +468,11 @@ function renderStage(n){
 function handleTelemetry(event){
   const msg=new TextDecoder().decode(event.target.value);
 
-  // V3.1 compact format:
-  // distance,presence,stage,currentSession,lastCompleted,powerSave,thresholdCm
+  // V4 compact format:
+  // distance,presence,stage,currentSession,lastCompleted,
+  // powerSave,thresholdCm,timingMode,autoBlink
   const p=msg.trim().split(",");
-  if(p.length<7){
+  if(p.length<9){
     console.log("Short BLE packet:",msg);
     return;
   }
@@ -305,6 +484,8 @@ function handleTelemetry(event){
   const lastCompletedSec=Number(p[4])||0;
   const powerSave=p[5]==="1";
   const thresholdCm=Number(p[6])||80;
+  const receivedTimingMode=p[7]==="1" ? "REAL" : "DEMO";
+  const receivedAutoBlink=p[8]==="1";
 
   if(Number.isFinite(distanceMm))distanceEl.textContent=Math.round(distanceMm/10)+" cm";
 
@@ -332,6 +513,12 @@ function handleTelemetry(event){
   previousPresence=present;
 
   powerSaveToggle.checked=powerSave;
+
+  timingMode=receivedTimingMode;
+  autoBlinkEnabled=receivedAutoBlink;
+  autoBlinkToggle.checked=autoBlinkEnabled;
+  renderTimingUI();
+
   thresholdReadout.textContent=thresholdCm+" cm";
   distanceSetting.value=thresholdCm;
   distanceSettingValue.textContent=thresholdCm+"cm";
@@ -374,6 +561,23 @@ async function sendCommand(command){
 
 connectButton.addEventListener("click",connectBLE);
 powerSaveToggle.addEventListener("change",()=>sendCommand(powerSaveToggle.checked?"POWER:ON":"POWER:OFF"));
+
+autoBlinkToggle.addEventListener("change",()=>{
+  autoBlinkEnabled=autoBlinkToggle.checked;
+  sendCommand(autoBlinkEnabled ? "BLINKAUTO:ON" : "BLINKAUTO:OFF");
+});
+
+demoModeButton.addEventListener("click",()=>{
+  timingMode="DEMO";
+  renderTimingUI();
+  sendCommand("TIME:DEMO");
+});
+
+realModeButton.addEventListener("click",()=>{
+  timingMode="REAL";
+  renderTimingUI();
+  sendCommand("TIME:REAL");
+});
 distanceSetting.addEventListener("input",()=>distanceSettingValue.textContent=distanceSetting.value+"cm");
 distanceSetting.addEventListener("change",()=>sendCommand("DIST:"+distanceSetting.value));
 document.querySelectorAll(".expressionButton").forEach(b=>b.addEventListener("click",()=>sendCommand(b.dataset.command)));
@@ -426,6 +630,7 @@ function handlePad(event){
 gazePad.addEventListener("touchstart",handlePad,{passive:false});
 gazePad.addEventListener("touchmove",handlePad,{passive:false});
 
+renderTimingUI();
 renderHistory();
 </script>
 </body>
