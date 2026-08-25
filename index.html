@@ -1,669 +1,842 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-<title>Eye Controller</title>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0">
+
+<title>
+Focus Eye
+</title>
+
 
 <style>
+
 * {
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  margin: 0;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
   background: #f3f3f3;
+
   color: #222;
-  user-select: none;
-  -webkit-user-select: none;
+
 }
 
-button {
-  font: inherit;
-  touch-action: manipulation;
-}
 
 #app {
-  height: 100dvh;
-  min-height: 100%;
-  padding:
-    max(6px, env(safe-area-inset-top))
-    8px
-    max(6px, env(safe-area-inset-bottom));
-  display: grid;
-  grid-template-rows: auto 1fr auto auto;
-  gap: 6px;
+
+  width: min(
+    100%,
+    430px
+  );
+
+  margin: auto;
+
+  padding: 12px;
+
 }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+
+h1 {
+
+  margin:
+    4px
+    0
+    10px;
+
+  font-size: 22px;
+
 }
 
-#connectButton {
-  border: 0;
-  border-radius: 9px;
-  padding: 8px 11px;
-  background: #222;
-  color: white;
-  font-weight: 700;
-  min-height: 38px;
-}
-
-#status {
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.main {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(128px, .85fr);
-  gap: 7px;
-}
-
-.pad-wrap {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#pad {
-  width: min(100%, 290px);
-  aspect-ratio: 1 / 1;
-  max-height: 100%;
-  background: white;
-  border: 2px solid #333;
-  border-radius: 16px;
-  position: relative;
-  touch-action: none;
-}
-
-#cursor {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #222;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.side {
-  min-width: 0;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 6px;
-}
 
 .card {
+
   background: white;
-  border-radius: 12px;
-  padding: 7px;
+
+  border-radius: 15px;
+
+  padding: 14px;
+
+  margin-bottom: 9px;
+
 }
+
+
+#connectButton {
+
+  width: 100%;
+
+  padding: 12px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  background: #222;
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+}
+
+
+#status {
+
+  margin-top: 7px;
+
+  text-align: center;
+
+  font-size: 12px;
+
+  color: #666;
+
+}
+
+
+.state {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+}
+
+
+.dot {
+
+  width: 14px;
+
+  height: 14px;
+
+  border-radius: 50%;
+
+  background: #aaa;
+
+}
+
+
+.dot.on {
+
+  background: #222;
+
+}
+
+
+#presenceText {
+
+  font-size: 21px;
+
+  font-weight: bold;
+
+}
+
 
 .label {
-  margin: 0 0 5px;
-  font-size: 11px;
+
+  color: #777;
+
+  font-size: 12px;
+
+}
+
+
+#focusTime {
+
+  margin-top: 3px;
+
+  font-size: 48px;
+
   font-weight: 800;
-  color: #555;
+
+  font-variant-numeric:
+    tabular-nums;
+
 }
 
-.expression-grid,
-.auto-grid {
+
+.metrics {
+
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 8px;
+
 }
 
-.auto-grid .wide {
-  grid-column: span 2;
-}
 
-.choice {
-  min-width: 0;
-  border: 1px solid #d4d4d4;
-  border-radius: 8px;
+.metric {
+
   background: #f5f5f5;
-  padding: 6px 3px;
-  min-height: 34px;
+
+  padding: 11px;
+
+  border-radius: 11px;
+
+}
+
+
+.metricTitle {
+
   font-size: 11px;
-  line-height: 1.05;
+
+  color: #777;
+
 }
 
-.choice.active {
-  background: #222;
-  color: white;
-  border-color: #222;
-  font-weight: 800;
+
+.metricValue {
+
+  margin-top: 4px;
+
+  font-size: 21px;
+
+  font-weight: bold;
+
 }
 
-.bottom-actions {
+
+.actions {
+
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 8px;
+
 }
+
 
 .action {
-  border: 0;
+
+  padding: 11px 4px;
+
   border-radius: 10px;
-  min-height: 42px;
-  padding: 8px;
-  font-weight: 800;
-}
 
-#blinkButton {
-  background: #222;
-  color: white;
-}
+  border: 1px solid #ccc;
 
-#centerButton {
   background: white;
-  color: #222;
-  border: 1px solid #bbb;
+
+  font-size: 14px;
+
+  font-weight: bold;
+
 }
 
-.footer {
+
+.note {
+
   text-align: center;
-  font-size: 10px;
-  color: #666;
-  line-height: 1.1;
+
+  font-size: 11px;
+
+  color: #777;
+
+  line-height: 1.5;
+
 }
 
-/* Narrow portrait phones such as iPhone SE */
-@media (max-width: 390px) {
-  #app {
-    gap: 4px;
-    padding-left: 6px;
-    padding-right: 6px;
-  }
-
-  .main {
-    grid-template-columns: minmax(0, 1.08fr) minmax(122px, .92fr);
-    gap: 5px;
-  }
-
-  .card {
-    padding: 5px;
-  }
-
-  .choice {
-    padding: 5px 2px;
-    min-height: 32px;
-    font-size: 10px;
-  }
-
-  .label {
-    font-size: 10px;
-  }
-
-  #cursor {
-    width: 24px;
-    height: 24px;
-  }
-}
 </style>
+
 </head>
+
 
 <body>
 
+
 <div id="app">
 
-  <div class="topbar">
-    <button id="connectButton">
-      Bluetooth接続
-    </button>
 
-    <div id="status">
-      未接続
-    </div>
-  </div>
+<h1>
+👁 Focus Eye
+</h1>
 
-  <div class="main">
 
-    <div class="pad-wrap">
-      <div id="pad">
-        <div id="cursor"></div>
-      </div>
-    </div>
+<div class="card">
 
-    <div class="side">
+<button id="connectButton">
+Bluetooth接続
+</button>
 
-      <section class="card">
-        <p class="label">まぶた</p>
-
-        <div class="expression-grid">
-
-          <button
-            class="choice expression active"
-            data-command="MODE:NORMAL">
-            通常<br>90°
-          </button>
-
-          <button
-            class="choice expression"
-            data-command="MODE:HALF">
-            半眼<br>110°
-          </button>
-
-          <button
-            class="choice expression"
-            data-command="MODE:JITO">
-            ジト目<br>125°
-          </button>
-
-          <button
-            class="choice expression"
-            data-command="MODE:SURPRISE">
-            驚き<br>65°
-          </button>
-
-        </div>
-      </section>
-
-      <section class="card">
-        <p class="label">放置時の視線</p>
-
-        <div class="auto-grid">
-
-          <button
-            class="choice auto active"
-            data-command="AUTO:KYORO">
-            キョロキョロ
-          </button>
-
-          <button
-            class="choice auto"
-            data-command="AUTO:NIDOMI">
-            二度見
-          </button>
-
-          <button
-            class="choice auto"
-            data-command="AUTO:PANIC">
-            慌てる
-          </button>
-
-          <button
-            class="choice auto"
-            data-command="AUTO:SLEEPY">
-            眠る
-          </button>
-
-          <button
-            class="choice auto wide"
-            data-command="AUTO:SUSPICIOUS">
-            怪しむ
-          </button>
-
-        </div>
-      </section>
-
-    </div>
-
-  </div>
-
-  <div class="bottom-actions">
-
-    <button
-      id="blinkButton"
-      class="action">
-      まばたき
-    </button>
-
-    <button
-      id="centerButton"
-      class="action">
-      中央
-    </button>
-
-  </div>
-
-  <div class="footer">
-    手動視線を優先・約2.2秒後にセミオート復帰
-  </div>
+<div id="status">
+未接続
+</div>
 
 </div>
+
+
+<div class="card">
+
+<div class="state">
+
+<div
+  id="presenceDot"
+  class="dot">
+</div>
+
+<div id="presenceText">
+待機中
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="label">
+今回の集中時間
+</div>
+
+<div id="focusTime">
+00:00
+</div>
+
+</div>
+
+
+<div class="card metrics">
+
+<div class="metric">
+
+<div class="metricTitle">
+現在距離
+</div>
+
+<div
+  id="distance"
+  class="metricValue">
+
+--- cm
+
+</div>
+
+</div>
+
+
+<div class="metric">
+
+<div class="metricTitle">
+判定距離
+</div>
+
+<div class="metricValue">
+80 cm
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card actions">
+
+<button
+  id="lookButton"
+  class="action">
+
+こっちを見る
+
+</button>
+
+
+<button
+  id="blinkButton"
+  class="action">
+
+まばたき
+
+</button>
+
+</div>
+
+
+<div class="note">
+
+80cm以内に3秒いると計測開始。<br>
+5秒以上離れると計測を停止。
+
+</div>
+
+
+</div>
+
 
 <script>
 
 const SERVICE_UUID =
 "7d7a0001-7d7a-4a01-9000-123456789abc";
 
-const CHAR_UUID =
+
+const COMMAND_UUID =
 "7d7a0002-7d7a-4a01-9000-123456789abc";
 
-let characteristic = null;
 
-let latestX = 90;
-let latestY = 90;
+const DATA_UUID =
+"7d7a0003-7d7a-4a01-9000-123456789abc";
 
-let lastSentX = null;
-let lastSentY = null;
 
-let isTouching = false;
-let xySending = false;
+let commandCharacteristic =
+  null;
 
-const pad =
-  document.getElementById("pad");
 
-const cursor =
-  document.getElementById("cursor");
+let dataCharacteristic =
+  null;
+
 
 const status =
-  document.getElementById("status");
+  document.getElementById(
+    "status"
+  );
+
+
+const presenceDot =
+  document.getElementById(
+    "presenceDot"
+  );
+
+
+const presenceText =
+  document.getElementById(
+    "presenceText"
+  );
+
+
+const focusTime =
+  document.getElementById(
+    "focusTime"
+  );
+
+
+const distance =
+  document.getElementById(
+    "distance"
+  );
+
+
+// ==========================================
+// Time formatting
+// ==========================================
+
+function formatTime(
+  seconds
+) {
+
+  seconds =
+    Number(seconds) || 0;
+
+
+  const hour =
+
+    Math.floor(
+      seconds / 3600
+    );
+
+
+  const minute =
+
+    Math.floor(
+      (seconds % 3600) /
+      60
+    );
+
+
+  const second =
+
+    Math.floor(
+      seconds % 60
+    );
+
+
+  if (
+    hour > 0
+  ) {
+
+    return (
+
+      String(hour)
+        .padStart(
+          2,
+          "0"
+        )
+
+      + ":" +
+
+      String(minute)
+        .padStart(
+          2,
+          "0"
+        )
+
+      + ":" +
+
+      String(second)
+        .padStart(
+          2,
+          "0"
+        )
+
+    );
+  }
+
+
+  return (
+
+    String(minute)
+      .padStart(
+        2,
+        "0"
+      )
+
+    + ":" +
+
+    String(second)
+      .padStart(
+        2,
+        "0"
+      )
+
+  );
+}
+
+
+// ==========================================
+// BLE data receiver
+// ==========================================
+
+function receiveData(
+  event
+) {
+
+  const message =
+
+    new TextDecoder()
+      .decode(
+        event.target.value
+      );
+
+
+  // Example:
+  //
+  // D:624,P:1,T:182
+
+
+  const values =
+    {};
+
+
+  message
+    .split(",")
+    .forEach(
+      item => {
+
+        const index =
+          item.indexOf(
+            ":"
+          );
+
+
+        if (
+          index < 0
+        ) {
+
+          return;
+        }
+
+
+        const key =
+          item.substring(
+            0,
+            index
+          );
+
+
+        const value =
+          item.substring(
+            index + 1
+          );
+
+
+        values[key] =
+          value;
+      }
+    );
+
+
+  // ========================================
+  // Distance
+  // ========================================
+
+  if (
+    values.D !==
+    undefined
+  ) {
+
+    const mm =
+      Number(
+        values.D
+      );
+
+
+    distance.textContent =
+
+      Math.round(
+        mm / 10
+      )
+
+      + " cm";
+  }
+
+
+  // ========================================
+  // Presence
+  // ========================================
+
+  if (
+    values.P !==
+    undefined
+  ) {
+
+    const present =
+
+      values.P ===
+      "1";
+
+
+    presenceDot
+      .classList
+      .toggle(
+        "on",
+        present
+      );
+
+
+    presenceText
+      .textContent =
+
+      present ?
+      "集中中" :
+      "離席中";
+  }
+
+
+  // ========================================
+  // Focus time
+  // ========================================
+
+  if (
+    values.T !==
+    undefined
+  ) {
+
+    focusTime
+      .textContent =
+
+      formatTime(
+        values.T
+      );
+  }
+}
+
+
+// ==========================================
+// BLE connect
+// ==========================================
 
 async function connectBLE() {
 
   try {
 
+
     const device =
-      await navigator.bluetooth.requestDevice({
-        filters: [
-          { name: "EYE-ATOM" }
-        ],
-        optionalServices: [
-          SERVICE_UUID
-        ]
-      });
+
+      await navigator
+        .bluetooth
+        .requestDevice({
+
+          filters: [
+            {
+              name:
+                "FOCUS-EYE"
+            }
+          ],
+
+          optionalServices: [
+            SERVICE_UUID
+          ]
+
+        });
+
 
     const server =
-      await device.gatt.connect();
+
+      await device
+        .gatt
+        .connect();
+
 
     const service =
-      await server.getPrimaryService(
-        SERVICE_UUID
+
+      await server
+        .getPrimaryService(
+          SERVICE_UUID
+        );
+
+
+    commandCharacteristic =
+
+      await service
+        .getCharacteristic(
+          COMMAND_UUID
+        );
+
+
+    dataCharacteristic =
+
+      await service
+        .getCharacteristic(
+          DATA_UUID
+        );
+
+
+    dataCharacteristic
+      .addEventListener(
+
+        "characteristicvaluechanged",
+
+        receiveData
+
       );
 
-    characteristic =
-      await service.getCharacteristic(
-        CHAR_UUID
-      );
+
+    await dataCharacteristic
+      .startNotifications();
+
 
     status.textContent =
       "接続済み";
 
   }
 
+
   catch(error) {
+
+    console.log(
+      error
+    );
+
 
     status.textContent =
       "接続エラー";
 
-    console.log(error);
-
   }
 }
 
-async function sendCommand(command) {
 
-  if (!characteristic) {
+// ==========================================
+// BLE command
+// ==========================================
+
+async function sendCommand(
+  command
+) {
+
+  if (
+    !commandCharacteristic
+  ) {
+
     return;
   }
 
+
   const data =
-    new TextEncoder().encode(
-      command
-    );
 
-  await characteristic.writeValue(
-    data
-  );
-}
-
-function updatePad(event) {
-
-  event.preventDefault();
-
-  const rect =
-    pad.getBoundingClientRect();
-
-  let x =
-    event.clientX -
-    rect.left;
-
-  let y =
-    event.clientY -
-    rect.top;
-
-  x =
-    Math.max(
-      0,
-      Math.min(rect.width, x)
-    );
-
-  y =
-    Math.max(
-      0,
-      Math.min(rect.height, y)
-    );
-
-  cursor.style.left =
-    x + "px";
-
-  cursor.style.top =
-    y + "px";
-
-  latestX =
-    Math.round(
-      30 +
-      (x / rect.width) *
-      120
-    );
-
-  latestY =
-    Math.round(
-      30 +
-      (y / rect.height) *
-      120
-    );
-}
-
-pad.addEventListener(
-  "pointerdown",
-  event => {
-
-    isTouching = true;
-
-    pad.setPointerCapture(
-      event.pointerId
-    );
-
-    updatePad(event);
-
-  }
-);
-
-pad.addEventListener(
-  "pointermove",
-  event => {
-
-    if (!isTouching) {
-      return;
-    }
-
-    updatePad(event);
-
-  }
-);
-
-pad.addEventListener(
-  "pointerup",
-  () => {
-
-    isTouching = false;
-
-  }
-);
-
-pad.addEventListener(
-  "pointercancel",
-  () => {
-
-    isTouching = false;
-
-  }
-);
-
-// Latest gaze only, 10 Hz.
-setInterval(
-  async () => {
-
-    if (
-      !isTouching ||
-      !characteristic ||
-      xySending
-    ) {
-      return;
-    }
-
-    if (
-      latestX === lastSentX &&
-      latestY === lastSentY
-    ) {
-      return;
-    }
-
-    xySending = true;
-
-    try {
-
-      await sendCommand(
-        "XY:" +
-        latestX +
-        "," +
-        latestY
+    new TextEncoder()
+      .encode(
+        command
       );
 
-      lastSentX =
-        latestX;
 
-      lastSentY =
-        latestY;
-
-    }
-
-    catch(error) {
-
-      console.log(error);
-
-    }
-
-    finally {
-
-      xySending = false;
-
-    }
-
-  },
-  100
-);
-
-// Expression buttons
-document
-  .querySelectorAll(".expression")
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      async () => {
-
-        await sendCommand(
-          button.dataset.command
-        );
-
-        document
-          .querySelectorAll(".expression")
-          .forEach(item =>
-            item.classList.remove("active")
-          );
-
-        button.classList.add("active");
-
-      }
+  await commandCharacteristic
+    .writeValue(
+      data
     );
+}
 
-  });
 
-// Auto gaze mode buttons
-document
-  .querySelectorAll(".auto")
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      async () => {
-
-        await sendCommand(
-          button.dataset.command
-        );
-
-        document
-          .querySelectorAll(".auto")
-          .forEach(item =>
-            item.classList.remove("active")
-          );
-
-        button.classList.add("active");
-
-      }
-    );
-
-  });
+// ==========================================
+// Buttons
+// ==========================================
 
 document
-  .getElementById("blinkButton")
-  .addEventListener(
-    "click",
-    () => {
-
-      sendCommand("BLINK");
-
-    }
-  );
-
-document
-  .getElementById("centerButton")
-  .addEventListener(
-    "click",
-    () => {
-
-      // Center of UI range.
-      latestX = 90;
-      latestY = 90;
-
-      cursor.style.left = "50%";
-      cursor.style.top = "50%";
-
-      sendCommand("XY:90,90");
-
-    }
-  );
-
-document
-  .getElementById("connectButton")
+  .getElementById(
+    "connectButton"
+  )
   .addEventListener(
     "click",
     connectBLE
   );
 
+
+document
+  .getElementById(
+    "lookButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      sendCommand(
+        "LOOK"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "blinkButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      sendCommand(
+        "BLINK"
+      );
+
+    }
+  );
+
 </script>
 
+
 </body>
+
 </html>
