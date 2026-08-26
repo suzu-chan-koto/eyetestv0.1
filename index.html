@@ -123,7 +123,7 @@ input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14
 .expressionButton{border:1px solid #d3d6da;background:#fafafa;border-radius:9px;min-height:39px;font-size:12px;font-weight:800}
 .remoteBottom{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
 .bigButton{border:0;border-radius:11px;padding:12px 6px;font-size:14px;font-weight:850;background:#24282d;color:white}
-.bigButton.secondary{background:#e7e9ec;color:#24282d}
+.bigButton.secondary{background:#e7e9ec;color:#24282d}.controlButton.locked{background:#25292e;color:white;border-color:#25292e}
 .note{text-align:center;color:#777;font-size:10px;line-height:1.45;margin-top:6px}
 @media(max-width:390px){#app{padding-left:9px;padding-right:9px}.card{padding:11px;margin-bottom:7px}#focusTime{font-size:43px}.remoteLayout{gap:7px}.controlButton{min-height:37px}.expressionButton{min-height:35px;font-size:11px}}
 </style>
@@ -254,6 +254,7 @@ input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14
           </div>
           <button id="blinkButton" class="controlButton">まばたき</button>
           <button id="centerButton" class="controlButton">中央</button>
+          <button id="eyeLockButton" class="controlButton">目固定 OFF</button>
         </div>
       </div>
 
@@ -279,6 +280,7 @@ let lastSeenCompletedSeconds=0;
 let resetArmedUntil=0;
 let timingMode="DEMO";
 let autoBlinkEnabled=true;
+let eyeLockEnabled=false;
 
 const $=id=>document.getElementById(id);
 const connectButton=$("connectButton"),statusEl=$("status"),presenceDot=$("presenceDot"),presenceText=$("presenceText"),stageText=$("stageText"),focusTime=$("focusTime"),todayTotal=$("todayTotal"),todayCount=$("todayCount"),distanceEl=$("distance"),thresholdReadout=$("thresholdReadout"),powerSaveToggle=$("powerSaveToggle"),autoBlinkToggle=$("autoBlinkToggle"),distanceSetting=$("distanceSetting"),distanceSettingValue=$("distanceSettingValue"),demoModeButton=$("demoModeButton"),realModeButton=$("realModeButton"),timingDescription=$("timingDescription"),modeNote=$("modeNote");
@@ -470,9 +472,9 @@ function handleTelemetry(event){
 
   // V4 compact format:
   // distance,presence,stage,currentSession,lastCompleted,
-  // powerSave,thresholdCm,timingMode,autoBlink
+  // powerSave,thresholdCm,timingMode,autoBlink,eyeLock
   const p=msg.trim().split(",");
-  if(p.length<9){
+  if(p.length<10){
     console.log("Short BLE packet:",msg);
     return;
   }
@@ -486,6 +488,7 @@ function handleTelemetry(event){
   const thresholdCm=Number(p[6])||80;
   const receivedTimingMode=p[7]==="1" ? "REAL" : "DEMO";
   const receivedAutoBlink=p[8]==="1";
+  const receivedEyeLock=p[9]==="1";
 
   if(Number.isFinite(distanceMm))distanceEl.textContent=Math.round(distanceMm/10)+" cm";
 
@@ -524,6 +527,13 @@ function handleTelemetry(event){
   distanceSettingValue.textContent=thresholdCm+"cm";
 
   renderHistory();
+}
+
+function renderEyeLockUI(){
+  const btn=$("eyeLockButton");
+  if(!btn)return;
+  btn.textContent=eyeLockEnabled ? "目固定 ON" : "目固定 OFF";
+  btn.classList.toggle("locked",eyeLockEnabled);
 }
 
 async function connectBLE(){
@@ -583,6 +593,11 @@ distanceSetting.addEventListener("change",()=>sendCommand("DIST:"+distanceSettin
 document.querySelectorAll(".expressionButton").forEach(b=>b.addEventListener("click",()=>sendCommand(b.dataset.command)));
 $("blinkButton").addEventListener("click",()=>sendCommand("BLINK"));
 $("centerButton").addEventListener("click",()=>sendCommand("CENTER"));
+$("eyeLockButton").addEventListener("click",()=>{
+  eyeLockEnabled=!eyeLockEnabled;
+  renderEyeLockUI();
+  sendCommand(eyeLockEnabled ? "EYELOCK:ON" : "EYELOCK:OFF");
+});
 $("remotePowerOff").addEventListener("click",()=>sendCommand("POWER:ON"));
 $("remotePowerOn").addEventListener("click",()=>sendCommand("POWER:OFF"));
 
@@ -631,6 +646,7 @@ gazePad.addEventListener("touchstart",handlePad,{passive:false});
 gazePad.addEventListener("touchmove",handlePad,{passive:false});
 
 renderTimingUI();
+renderEyeLockUI();
 renderHistory();
 </script>
 </body>
