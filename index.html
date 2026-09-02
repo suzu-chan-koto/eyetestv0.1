@@ -2,652 +2,132 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Focus Eye</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eye Remote</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;min-height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f2f3f5;color:#1f2227}
-button,input{font-family:inherit}
-#app{width:min(100%,430px);margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom))}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
-h1{margin:0;font-size:22px}
-#connectButton{border:0;border-radius:10px;padding:9px 12px;background:#1f2227;color:white;font-weight:800}
-#connectButton.connected{background:#535961}
-#status{font-size:11px;color:#777;margin-top:3px}
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;background:#e6e8eb;border-radius:12px;padding:4px;margin-bottom:10px}
-.tab{border:0;border-radius:9px;padding:9px 4px;background:transparent;font-weight:800;color:#62676e;font-size:12px}
-.tab.active{background:white;color:#1f2227}
-.page{display:none}.page.active{display:block}
-.card{background:white;border-radius:15px;padding:14px;margin-bottom:9px}
-.presenceRow{display:flex;align-items:center;gap:9px}
-.dot{width:13px;height:13px;border-radius:50%;background:#adb1b6}.dot.on{background:#1f2227}
-#presenceText{font-size:20px;font-weight:850}
-.sub{color:#777;font-size:11px;margin-top:4px}
-.focusTimerLabel{color:#777;font-size:12px}
-#focusTime{margin-top:2px;font-size:51px;font-weight:850;letter-spacing:-1px;font-variant-numeric:tabular-nums}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.metric{background:#f4f5f6;border-radius:11px;padding:11px}
-.metricTitle{font-size:10px;color:#777}.metricValue{margin-top:4px;font-size:19px;font-weight:800}
-.stageBar{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px}
-.stage{height:6px;border-radius:999px;background:#dfe2e5}.stage.on{background:#333}
-.powerRow{display:flex;justify-content:space-between;align-items:center;gap:15px}
-.powerTitle{font-size:14px;font-weight:800}
-.switch{position:relative;width:52px;height:30px;flex:0 0 auto}.switch input{display:none}
-.slider{position:absolute;inset:0;border-radius:999px;background:#d5d8dc}
-.slider::before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;border-radius:50%;background:white;transition:.15s}
-.switch input:checked+.slider{background:#282c31}.switch input:checked+.slider::before{transform:translateX(22px)}
-.rangeRow{display:grid;grid-template-columns:1fr 58px;gap:10px;align-items:center}
-input[type=range]{width:100%}#distanceSettingValue{text-align:right;font-size:14px;font-weight:800}
-
-
-.modeButtons{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px;
-  margin-top:9px;
-}
-.modeButton{
-  border:1px solid #d3d6da;
-  background:#f7f8f9;
-  border-radius:10px;
-  padding:10px 6px;
-  font-size:12px;
-  font-weight:850;
-}
-.modeButton.active{
-  background:#25292e;
-  color:white;
-  border-color:#25292e;
-}
-.settingDivider{
-  height:1px;
-  background:#eceef0;
-  margin:12px 0;
-}
-.weekChart{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  align-items:end;
-  gap:5px;
-  height:120px;
-  margin-top:10px;
-}
-.dayCol{
-  height:100%;
-  display:grid;
-  grid-template-rows:1fr auto;
-  gap:5px;
-  align-items:end;
-  text-align:center;
-}
-.barTrack{
-  height:100%;
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-}
-.bar{
-  width:70%;
-  min-height:3px;
-  background:#30343a;
-  border-radius:5px 5px 2px 2px;
-}
-.dayLabel{
-  font-size:9px;
-  color:#777;
-}
-
-/* history */
-.summaryHero{display:grid;grid-template-columns:1.2fr .8fr;gap:8px}
-.heroBox{background:#f4f5f6;border-radius:12px;padding:13px}
-.heroLabel{font-size:11px;color:#777}.heroValue{font-size:28px;font-weight:850;margin-top:3px;font-variant-numeric:tabular-nums}
-.historyTitle{font-size:14px;font-weight:850;margin-bottom:8px}
-.sessionList{display:grid;gap:6px}
-.sessionRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#f5f6f7;border-radius:10px;padding:10px 11px}
-.sessionTime{font-weight:800;font-size:14px}.sessionMeta{font-size:10px;color:#777;margin-top:2px}
-.sessionDuration{font-weight:850;font-variant-numeric:tabular-nums}
-.empty{text-align:center;color:#8a8f95;font-size:12px;padding:20px 0}
-.dangerButton{width:100%;border:1px solid #d4d7da;background:white;border-radius:10px;padding:10px;font-size:12px;font-weight:800}
-.dangerButton.armed{background:#25292e;color:white}
-
-/* remote */
-.remoteLayout{display:grid;grid-template-columns:1.15fr .85fr;gap:9px}
-.gazePad{position:relative;width:100%;aspect-ratio:1/1;background:linear-gradient(#eceef0 1px,transparent 1px),linear-gradient(90deg,#eceef0 1px,transparent 1px),#fafafa;background-size:25% 25%;border:1px solid #d6d9dd;border-radius:15px;touch-action:none;overflow:hidden}
-.gazePad::before,.gazePad::after{content:"";position:absolute;background:#c9ccd0}
-.gazePad::before{width:1px;height:100%;left:50%;top:0}.gazePad::after{height:1px;width:100%;top:50%;left:0}
-.cursor{position:absolute;width:19px;height:19px;border-radius:50%;background:#24282d;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
-.controlStack{display:grid;gap:7px;align-content:start}
-.controlButton{min-height:42px;border:1px solid #d3d6da;border-radius:10px;background:white;font-size:13px;font-weight:800}
-.expressionGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.expressionButton{border:1px solid #d3d6da;background:#fafafa;border-radius:9px;min-height:39px;font-size:12px;font-weight:800}
-.remoteBottom{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
-.bigButton{border:0;border-radius:11px;padding:12px 6px;font-size:14px;font-weight:850;background:#24282d;color:white}
-.bigButton.secondary{background:#e7e9ec;color:#24282d}.controlButton.locked{background:#25292e;color:white;border-color:#25292e}
-.note{text-align:center;color:#777;font-size:10px;line-height:1.45;margin-top:6px}
-@media(max-width:390px){#app{padding-left:9px;padding-right:9px}.card{padding:11px;margin-bottom:7px}#focusTime{font-size:43px}.remoteLayout{gap:7px}.controlButton{min-height:37px}.expressionButton{min-height:35px;font-size:11px}}
+html,body{margin:0;min-height:100%;width:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f2f3f5;color:#202327}
+button{font-family:inherit;touch-action:manipulation}
+#app{width:min(100%,430px);margin:auto;padding:max(10px,env(safe-area-inset-top)) 10px max(14px,env(safe-area-inset-bottom))}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+h1{font-size:21px;margin:0}
+#status{font-size:10px;color:#777;margin-top:2px}
+#connect{border:0;border-radius:10px;padding:9px 12px;background:#24282d;color:#fff;font-weight:800}
+.card{background:#fff;border-radius:15px;padding:10px;margin-bottom:8px}
+.title{font-size:12px;font-weight:850;color:#62676e;margin-bottom:8px}
+.top{display:grid;grid-template-columns:1.15fr .85fr;gap:8px}
+.pad{position:relative;width:100%;aspect-ratio:1/1;border:1px solid #d7dade;border-radius:14px;background:linear-gradient(#eceef0 1px,transparent 1px),linear-gradient(90deg,#eceef0 1px,transparent 1px),#fafafa;background-size:25% 25%;overflow:hidden;touch-action:none}
+.pad:before,.pad:after{content:"";position:absolute;background:#c9ccd0}
+.pad:before{left:50%;top:0;width:1px;height:100%}.pad:after{top:50%;left:0;width:100%;height:1px}
+.cursor{position:absolute;left:50%;top:50%;width:19px;height:19px;border-radius:50%;background:#25292e;transform:translate(-50%,-50%);pointer-events:none}
+.side{display:grid;gap:6px;align-content:start}.expr{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.btn{border:1px solid #d5d8dc;border-radius:9px;background:#fafafa;min-height:37px;padding:6px 3px;font-size:11px;font-weight:850}
+.reactions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.react{min-height:52px;border:0;border-radius:11px;background:#f0f1f3;color:#202327;font-size:13px;font-weight:850;padding:7px 4px}
+.react span{display:block;margin-top:2px;font-size:9px;font-weight:500;color:#777}
+.note{font-size:9px;color:#777;text-align:center;margin-top:5px;line-height:1.4}
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="topbar">
-    <div><h1>👁 Focus Eye</h1><div id="status">未接続</div></div>
-    <button id="connectButton">BLE接続</button>
+  <div class="header">
+    <div><h1>👁 Eye Remote</h1><div id="status">未接続</div></div>
+    <button id="connect">BLE接続</button>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-page="focusPage">集中</button>
-    <button class="tab" data-page="historyPage">記録</button>
-    <button class="tab" data-page="remotePage">リモコン</button>
+  <div class="card">
+    <div class="title">基本操作</div>
+    <div class="top">
+      <div>
+        <div id="pad" class="pad"><div id="cursor" class="cursor"></div></div>
+        <div class="note">指で視線を操作</div>
+      </div>
+      <div class="side">
+        <div class="expr">
+          <button class="btn" data-cmd="MODE:NORMAL">通常</button>
+          <button class="btn" data-cmd="MODE:HALF">半眼</button>
+          <button class="btn" data-cmd="MODE:JITO">ジト目</button>
+          <button class="btn" data-cmd="MODE:SURPRISE">驚き</button>
+        </div>
+        <button class="btn" data-cmd="BLINK">まばたき</button>
+        <button id="center" class="btn" data-cmd="CENTER">中央リセット</button>
+      </div>
+    </div>
   </div>
 
-  <section id="focusPage" class="page active">
-    <div class="card">
-      <div class="presenceRow">
-        <div id="presenceDot" class="dot"></div>
-        <div><div id="presenceText">待機中</div><div id="stageText" class="sub">目は休憩中</div></div>
-      </div>
-      <div class="stageBar"><div id="stage1" class="stage"></div><div id="stage2" class="stage"></div><div id="stage3" class="stage"></div><div id="stage4" class="stage"></div></div>
+  <div class="card">
+    <div class="title">リアクション</div>
+    <div class="reactions">
+      <button class="react" data-cmd="REACT:DOUBLE">二度見<span>見て→戻る→もう一度</span></button>
+      <button class="react" data-cmd="REACT:PANIC">あわてる<span>高速キョロキョロ</span></button>
+      <button class="react" data-cmd="REACT:SURPRISE">びっくり<span>パッと見開く</span></button>
+      <button class="react" data-cmd="REACT:SUSPICIOUS">怪しむ<span>ジト目で左右確認</span></button>
+      <button class="react" data-cmd="REACT:SLEEPY">眠い<span>半眼からウトウト</span></button>
+      <button class="react" data-cmd="REACT:DOZE">居眠り<span>寝落ち→ハッと起きる</span></button>
+      <button class="react" data-cmd="REACT:LOOKAROUND">キョロキョロ<span>周囲を見回す</span></button>
+      <button class="react" data-cmd="REACT:LOOKAWAY">目をそらす<span>見たあとサッと逸らす</span></button>
+      <button class="react" data-cmd="REACT:STARE">ガン見<span>ジト目でじーっと見る</span></button>
+      <button class="react" data-cmd="REACT:GROOVE">ノリノリ<span>左右にリズム</span></button>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="focusTimerLabel">今回の集中時間</div>
-      <div id="focusTime">00:00</div>
-    </div>
-
-    <div class="card grid2">
-      <div class="metric"><div class="metricTitle">今日の累計</div><div id="todayTotal" class="metricValue">00:00</div></div>
-      <div class="metric"><div class="metricTitle">今日の回数</div><div id="todayCount" class="metricValue">0 回</div></div>
-      <div class="metric"><div class="metricTitle">現在距離</div><div id="distance" class="metricValue">--- cm</div></div>
-      <div class="metric"><div class="metricTitle">判定距離</div><div id="thresholdReadout" class="metricValue">80 cm</div></div>
-    </div>
-
-    <div class="card">
-
-      <div class="powerTitle">時間設定</div>
-      <div class="sub" id="timingDescription">デモ：20秒 / 40秒 / 60秒</div>
-
-      <div class="modeButtons">
-        <button id="demoModeButton" class="modeButton active">デモ</button>
-        <button id="realModeButton" class="modeButton">本番</button>
-      </div>
-
-      <div class="settingDivider"></div>
-
-      <div class="powerRow">
-        <div>
-          <div class="powerTitle">自動まばたき</div>
-          <div class="sub">約14〜26秒に1回</div>
-        </div>
-        <label class="switch">
-          <input id="autoBlinkToggle" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="settingDivider"></div>
-
-      <div class="powerRow">
-        <div>
-          <div class="powerTitle">省エネモード</div>
-          <div class="sub">目の移動・自動まばたきを停止</div>
-        </div>
-        <label class="switch">
-          <input id="powerSaveToggle" type="checkbox">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-    </div>
-
-    <div class="card">
-      <div class="focusTimerLabel">在席判定距離</div>
-      <div class="rangeRow">
-        <input id="distanceSetting" type="range" min="30" max="150" step="5" value="80">
-        <div id="distanceSettingValue">80cm</div>
-      </div>
-    </div>
-
-    <div class="note" id="modeNote">デモ：20秒 / 40秒 / 60秒で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。</div>
-  </section>
-
-  <section id="historyPage" class="page">
-    <div class="card">
-      <div class="historyTitle">今日</div>
-      <div class="summaryHero">
-        <div class="heroBox"><div class="heroLabel">累計集中時間</div><div id="historyTotal" class="heroValue">00:00</div></div>
-        <div class="heroBox"><div class="heroLabel">最長</div><div id="historyLongest" class="heroValue">00:00</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="historyTitle">直近7日</div>
-      <div id="weekChart" class="weekChart"></div>
-    </div>
-
-    <div class="card">
-      <div class="historyTitle">セッション履歴</div>
-      <div id="sessionList" class="sessionList"></div>
-    </div>
-
-    <div class="card">
-      <button id="clearHistory" class="dangerButton">今日の記録をリセット</button>
-    </div>
-
-    <div class="note">記録はこのブラウザ内に保存。<br>「離席確定」になった瞬間に1セッションとして保存します。</div>
-  </section>
-
-  <section id="remotePage" class="page">
-    <div class="card">
-      <div class="remoteLayout">
-        <div>
-          <div id="gazePad" class="gazePad"><div id="gazeCursor" class="cursor"></div></div>
-          <div class="note">指で視線を操作</div>
-        </div>
-
-        <div class="controlStack">
-          <div class="expressionGrid">
-            <button class="expressionButton" data-command="MODE:NORMAL">通常</button>
-            <button class="expressionButton" data-command="MODE:HALF">半眼</button>
-            <button class="expressionButton" data-command="MODE:JITO">ジト目</button>
-            <button class="expressionButton" data-command="MODE:SURPRISE">驚き</button>
-          </div>
-          <button id="blinkButton" class="controlButton">まばたき</button>
-          <button id="centerButton" class="controlButton">中央</button>
-          <button id="eyeLockButton" class="controlButton">目固定 OFF</button>
-        </div>
-      </div>
-
-      <div class="remoteBottom">
-        <button id="remotePowerOff" class="bigButton">動作停止</button>
-        <button id="remotePowerOn" class="bigButton secondary">動作再開</button>
-      </div>
-    </div>
-    <div class="note">手動視線を優先。約2.2秒後に集中モードの半自動動作へ戻ります。</div>
-  </section>
+  <div class="note">リアクション終了後は開始前の視線位置＋表情へ戻ります。</div>
 </div>
 
 <script>
-const SERVICE_UUID="7d7a0001-7d7a-4a01-9000-123456789abc";
-const COMMAND_UUID="7d7a0002-7d7a-4a01-9000-123456789abc";
-const DATA_UUID="7d7a0003-7d7a-4a01-9000-123456789abc";
-
-let device=null,commandCharacteristic=null,dataCharacteristic=null;
-let previousPresence=false;
-let currentSessionSeconds=0;
-let currentSessionStartWallClock=null;
-let lastSeenCompletedSeconds=0;
-let resetArmedUntil=0;
-let timingMode="DEMO";
-let autoBlinkEnabled=true;
-let eyeLockEnabled=false;
-
-const $=id=>document.getElementById(id);
-const connectButton=$("connectButton"),statusEl=$("status"),presenceDot=$("presenceDot"),presenceText=$("presenceText"),stageText=$("stageText"),focusTime=$("focusTime"),todayTotal=$("todayTotal"),todayCount=$("todayCount"),distanceEl=$("distance"),thresholdReadout=$("thresholdReadout"),powerSaveToggle=$("powerSaveToggle"),autoBlinkToggle=$("autoBlinkToggle"),distanceSetting=$("distanceSetting"),distanceSettingValue=$("distanceSettingValue"),demoModeButton=$("demoModeButton"),realModeButton=$("realModeButton"),timingDescription=$("timingDescription"),modeNote=$("modeNote");
-
-function todayKey(){
-  const d=new Date();
-  return `focusEye:${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
-function loadDay(){
-  try{
-    const raw=localStorage.getItem(todayKey());
-    if(!raw)return {sessions:[]};
-    const obj=JSON.parse(raw);
-    return {sessions:Array.isArray(obj.sessions)?obj.sessions:[]};
-  }catch(e){
-    console.error("loadDay",e);
-    return {sessions:[]};
-  }
-}
-function saveDay(data){
-  try{
-    localStorage.setItem(todayKey(),JSON.stringify(data));
-    return true;
-  }catch(e){
-    console.error("saveDay",e);
-    statusEl.textContent="履歴保存エラー";
-    return false;
-  }
-}
-function formatTime(v){
-  v=Math.max(0,Math.floor(Number(v)||0));
-  const h=Math.floor(v/3600),m=Math.floor((v%3600)/60),s=v%60;
-  return h>0?`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`:`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-function timeText(ts){
-  const d=new Date(ts);
-  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-}
-
-
-function keyForDate(d){
-  return `focusEye:${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
-
-function loadDayByDate(d){
-  try{
-    const raw=localStorage.getItem(keyForDate(d));
-    if(!raw)return {sessions:[]};
-    const obj=JSON.parse(raw);
-    return {sessions:Array.isArray(obj.sessions)?obj.sessions:[]};
-  }catch(e){
-    return {sessions:[]};
-  }
-}
-
-function renderWeekChart(){
-  const chart=$("weekChart");
-  if(!chart)return;
-
-  const days=[];
-  let maxTotal=1;
-
-  for(let i=6;i>=0;i--){
-    const d=new Date();
-    d.setHours(0,0,0,0);
-    d.setDate(d.getDate()-i);
-
-    const data=loadDayByDate(d);
-    let total=(data.sessions||[]).reduce((sum,s)=>sum+(Number(s.duration)||0),0);
-
-    if(i===0 && previousPresence){
-      total+=currentSessionSeconds;
-    }
-
-    maxTotal=Math.max(maxTotal,total);
-    days.push({d,total});
-  }
-
-  chart.innerHTML="";
-
-  days.forEach(({d,total})=>{
-    const col=document.createElement("div");
-    col.className="dayCol";
-
-    const track=document.createElement("div");
-    track.className="barTrack";
-
-    const bar=document.createElement("div");
-    bar.className="bar";
-    bar.style.height=Math.max(3,Math.round((total/maxTotal)*100))+"%";
-    bar.title=formatTime(total);
-
-    const label=document.createElement("div");
-    label.className="dayLabel";
-    label.textContent=`${d.getMonth()+1}/${d.getDate()}`;
-
-    track.appendChild(bar);
-    col.appendChild(track);
-    col.appendChild(label);
-    chart.appendChild(col);
-  });
-}
-
-function renderTimingUI(){
-  const isDemo=timingMode==="DEMO";
-
-  demoModeButton.classList.toggle("active",isDemo);
-  realModeButton.classList.toggle("active",!isDemo);
-
-  timingDescription.textContent=isDemo
-    ? "デモ：20秒 / 40秒 / 60秒"
-    : "本番：5分 / 25分 / 45分";
-
-  modeNote.innerHTML=isDemo
-    ? "デモ：20秒 / 40秒 / 60秒で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。"
-    : "本番：5分 / 25分 / 45分で目の態度が変化。<br>3秒で着席確定、5秒で離席確定。";
-}
-
-function renderHistory(){
-  const data=loadDay(),sessions=data.sessions;
-  const savedTotal=sessions.reduce((a,s)=>a+(Number(s.duration)||0),0);
-  const longest=sessions.reduce((a,s)=>Math.max(a,Number(s.duration)||0),0);
-  const live=previousPresence?currentSessionSeconds:0;
-
-  $("historyTotal").textContent=formatTime(savedTotal+live);
-  $("historyLongest").textContent=formatTime(Math.max(longest,live));
-  todayTotal.textContent=formatTime(savedTotal+live);
-  todayCount.textContent=(sessions.length+(previousPresence?1:0))+" 回";
-
-  const list=$("sessionList");
-  list.innerHTML="";
-  if(!sessions.length){
-    list.innerHTML='<div class="empty">まだ完了したセッションはありません</div>';
-    renderWeekChart();
-    return;
-  }
-
-  [...sessions].reverse().forEach((s,idx)=>{
-    const row=document.createElement("div");
-    row.className="sessionRow";
-    row.innerHTML=`<div><div class="sessionTime">${timeText(s.start)} - ${timeText(s.end)}</div><div class="sessionMeta">セッション ${sessions.length-idx}</div></div><div class="sessionDuration">${formatTime(s.duration)}</div>`;
-    list.appendChild(row);
-  });
-
-  renderWeekChart();
-}
-
-function recordCompletedSession(durationSeconds){
-  const duration=Math.floor(Number(durationSeconds)||0);
-  if(duration<1)return false;
-
-  const end=Date.now();
-  const start=currentSessionStartWallClock || (end-duration*1000);
-  const data=loadDay();
-
-  // Avoid duplicate saving of the same BLE "last completed" value on repeated notifications.
-  const latest=data.sessions[data.sessions.length-1];
-  if(latest && Math.abs(Number(latest.end)-end)<3000 && Number(latest.duration)===duration){
-    return false;
-  }
-
-  data.sessions.push({start,end,duration});
-  if(data.sessions.length>100)data.sessions=data.sessions.slice(-100);
-
-  const ok=saveDay(data);
-  if(ok){
-    statusEl.textContent="セッション保存済み";
-    renderHistory();
-  }
-  return ok;
-}
-
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");$(b.dataset.page).classList.add("active");
-  renderHistory();
-}));
-
-function renderStage(n){
-  n=Number(n)||0;
-  const labels={0:"目は休憩中",1:"着席を確認",2:"集中を静かに見守り中",3:"ちょっと長いぞ",4:"そろそろ休憩どう？"};
-  stageText.textContent=labels[n]||"状態確認中";
-  for(let i=1;i<=4;i++)$("stage"+i).classList.toggle("on",n>=i);
-}
-
-function handleTelemetry(event){
-  const msg=new TextDecoder().decode(event.target.value);
-
-  // V4 compact format:
-  // distance,presence,stage,currentSession,lastCompleted,
-  // powerSave,thresholdCm,timingMode,autoBlink,eyeLock
-  const p=msg.trim().split(",");
-  if(p.length<10){
-    console.log("Short BLE packet:",msg);
-    return;
-  }
-
-  const distanceMm=Number(p[0]);
-  const present=p[1]==="1";
-  const stage=Number(p[2]);
-  const sessionSec=Number(p[3])||0;
-  const lastCompletedSec=Number(p[4])||0;
-  const powerSave=p[5]==="1";
-  const thresholdCm=Number(p[6])||80;
-  const receivedTimingMode=p[7]==="1" ? "REAL" : "DEMO";
-  const receivedAutoBlink=p[8]==="1";
-  const receivedEyeLock=p[9]==="1";
-
-  if(Number.isFinite(distanceMm))distanceEl.textContent=Math.round(distanceMm/10)+" cm";
-
-  currentSessionSeconds=sessionSec;
-  focusTime.textContent=formatTime(sessionSec);
-
-  presenceDot.classList.toggle("on",present);
-  presenceText.textContent=present?"集中中":"離席中";
-  renderStage(stage);
-
-  if(present && !previousPresence){
-    currentSessionStartWallClock=Date.now()-sessionSec*1000;
-  }
-
-  // Falling edge: use M5's lastCompleted value, not currentSession (which is already 0 after leaving).
-  if(!present && previousPresence){
-    const duration=lastCompletedSec>0?lastCompletedSec:lastSeenCompletedSeconds;
-    recordCompletedSession(duration);
-    currentSessionStartWallClock=null;
-  }
-
-  // Also remember nonzero last-completed value from M5.
-  if(lastCompletedSec>0)lastSeenCompletedSeconds=lastCompletedSec;
-
-  previousPresence=present;
-
-  powerSaveToggle.checked=powerSave;
-
-  timingMode=receivedTimingMode;
-  autoBlinkEnabled=receivedAutoBlink;
-  autoBlinkToggle.checked=autoBlinkEnabled;
-  renderTimingUI();
-
-  thresholdReadout.textContent=thresholdCm+" cm";
-  distanceSetting.value=thresholdCm;
-  distanceSettingValue.textContent=thresholdCm+"cm";
-
-  renderHistory();
-}
-
-function renderEyeLockUI(){
-  const btn=$("eyeLockButton");
-  if(!btn)return;
-  btn.textContent=eyeLockEnabled ? "目固定 ON" : "目固定 OFF";
-  btn.classList.toggle("locked",eyeLockEnabled);
-}
+const SERVICE="7d7a0001-7d7a-4a01-9000-123456789abc";
+const COMMAND="7d7a0002-7d7a-4a01-9000-123456789abc";
+let characteristic=null,device=null,lastSend=0;
+const statusEl=document.getElementById("status");
 
 async function connectBLE(){
   try{
     statusEl.textContent="検索中…";
-    device=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE_UUID]}]});
-
-    device.addEventListener("gattserverdisconnected",()=>{
-      statusEl.textContent="切断";connectButton.textContent="BLE接続";connectButton.classList.remove("connected");
-      commandCharacteristic=null;dataCharacteristic=null;
-    });
-
-    statusEl.textContent="接続中…";
+    device=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE]}]});
+    device.addEventListener("gattserverdisconnected",()=>{characteristic=null;statusEl.textContent="切断"});
     const server=await device.gatt.connect();
-    const service=await server.getPrimaryService(SERVICE_UUID);
-    commandCharacteristic=await service.getCharacteristic(COMMAND_UUID);
-    dataCharacteristic=await service.getCharacteristic(DATA_UUID);
-    dataCharacteristic.addEventListener("characteristicvaluechanged",handleTelemetry);
-    await dataCharacteristic.startNotifications();
-
-    statusEl.textContent="接続済み";connectButton.textContent="接続済";connectButton.classList.add("connected");
+    const service=await server.getPrimaryService(SERVICE);
+    characteristic=await service.getCharacteristic(COMMAND);
+    statusEl.textContent="接続済み";
   }catch(e){
-    console.error(e);statusEl.textContent="接続失敗: "+(e.message||"不明");
+    console.error(e);
+    statusEl.textContent="接続失敗: "+(e.message||"不明");
   }
 }
-
-async function sendCommand(command){
-  if(!commandCharacteristic){statusEl.textContent="先にBLE接続してください";return}
+async function send(cmd){
+  if(!characteristic){statusEl.textContent="先にBLE接続";return}
+  const data=new TextEncoder().encode(cmd);
   try{
-    const payload=new TextEncoder().encode(command);
-    if(commandCharacteristic.writeValueWithoutResponse)await commandCharacteristic.writeValueWithoutResponse(payload);
-    else await commandCharacteristic.writeValue(payload);
+    if(characteristic.writeValueWithoutResponse) await characteristic.writeValueWithoutResponse(data);
+    else await characteristic.writeValue(data);
   }catch(e){console.error(e);statusEl.textContent="送信失敗"}
 }
+document.getElementById("connect").addEventListener("click",connectBLE);
+document.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",()=>send(b.dataset.cmd)));
 
-connectButton.addEventListener("click",connectBLE);
-powerSaveToggle.addEventListener("change",()=>sendCommand(powerSaveToggle.checked?"POWER:ON":"POWER:OFF"));
-
-autoBlinkToggle.addEventListener("change",()=>{
-  autoBlinkEnabled=autoBlinkToggle.checked;
-  sendCommand(autoBlinkEnabled ? "BLINKAUTO:ON" : "BLINKAUTO:OFF");
-});
-
-demoModeButton.addEventListener("click",()=>{
-  timingMode="DEMO";
-  renderTimingUI();
-  sendCommand("TIME:DEMO");
-});
-
-realModeButton.addEventListener("click",()=>{
-  timingMode="REAL";
-  renderTimingUI();
-  sendCommand("TIME:REAL");
-});
-distanceSetting.addEventListener("input",()=>distanceSettingValue.textContent=distanceSetting.value+"cm");
-distanceSetting.addEventListener("change",()=>sendCommand("DIST:"+distanceSetting.value));
-document.querySelectorAll(".expressionButton").forEach(b=>b.addEventListener("click",()=>sendCommand(b.dataset.command)));
-$("blinkButton").addEventListener("click",()=>sendCommand("BLINK"));
-$("centerButton").addEventListener("click",()=>sendCommand("CENTER"));
-$("eyeLockButton").addEventListener("click",()=>{
-  eyeLockEnabled=!eyeLockEnabled;
-  renderEyeLockUI();
-  sendCommand(eyeLockEnabled ? "EYELOCK:ON" : "EYELOCK:OFF");
-});
-$("remotePowerOff").addEventListener("click",()=>sendCommand("POWER:ON"));
-$("remotePowerOn").addEventListener("click",()=>sendCommand("POWER:OFF"));
-
-$("clearHistory").addEventListener("click",()=>{
-  const btn=$("clearHistory");
-  const now=Date.now();
-
-  if(now>resetArmedUntil){
-    resetArmedUntil=now+3000;
-    btn.textContent="もう一度押すと削除";
-    btn.classList.add("armed");
-    setTimeout(()=>{
-      if(Date.now()>resetArmedUntil){
-        btn.textContent="今日の記録をリセット";
-        btn.classList.remove("armed");
-      }
-    },3100);
-    return;
-  }
-
-  localStorage.removeItem(todayKey());
-  resetArmedUntil=0;
-  btn.textContent="今日の記録をリセット";
-  btn.classList.remove("armed");
-  renderHistory();
-  statusEl.textContent="今日の記録を削除しました";
-});
-
-/* gaze pad */
-const gazePad=$("gazePad"),gazeCursor=$("gazeCursor");
-let lastSendAt=0;
-function handlePad(event){
-  if(!event.touches?.length)return;
-  event.preventDefault();
+const pad=document.getElementById("pad"),cursor=document.getElementById("cursor");
+function gaze(clientX,clientY){
   const now=performance.now();
-  if(now-lastSendAt<100)return;
-  lastSendAt=now;
-  const rect=gazePad.getBoundingClientRect(),touch=event.touches[0];
-  const px=Math.max(0,Math.min(rect.width,touch.clientX-rect.left));
-  const py=Math.max(0,Math.min(rect.height,touch.clientY-rect.top));
-  gazeCursor.style.left=px+"px";gazeCursor.style.top=py+"px";
-  const x=Math.round(30+(px/rect.width)*120),y=Math.round(30+(py/rect.height)*120);
-  sendCommand(`XY:${x},${y}`);
+  if(now-lastSend<100)return;
+  lastSend=now;
+  const r=pad.getBoundingClientRect();
+  const px=Math.max(0,Math.min(r.width,clientX-r.left));
+  const py=Math.max(0,Math.min(r.height,clientY-r.top));
+  cursor.style.left=px+"px"; cursor.style.top=py+"px";
+  const x=Math.round(30+(px/r.width)*120);
+  const y=Math.round(30+(py/r.height)*120);
+  send(`XY:${x},${y}`);
 }
-gazePad.addEventListener("touchstart",handlePad,{passive:false});
-gazePad.addEventListener("touchmove",handlePad,{passive:false});
-
-renderTimingUI();
-renderEyeLockUI();
-renderHistory();
+pad.addEventListener("touchstart",e=>{if(e.touches.length){e.preventDefault();gaze(e.touches[0].clientX,e.touches[0].clientY)}},{passive:false});
+pad.addEventListener("touchmove",e=>{if(e.touches.length){e.preventDefault();gaze(e.touches[0].clientX,e.touches[0].clientY)}},{passive:false});
+pad.addEventListener("mousedown",e=>{
+  gaze(e.clientX,e.clientY);
+  const mv=x=>gaze(x.clientX,x.clientY);
+  const up=()=>{window.removeEventListener("mousemove",mv);window.removeEventListener("mouseup",up)};
+  window.addEventListener("mousemove",mv);window.addEventListener("mouseup",up);
+});
+document.getElementById("center").addEventListener("click",()=>{cursor.style.left="50%";cursor.style.top="50%"});
 </script>
 </body>
 </html>
